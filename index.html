@@ -134,13 +134,16 @@
       <label style="margin-top:14px">Текст заказа
         <textarea id="order" placeholder="Вставьте заказ сюда..."></textarea>
       </label>
+      <button class="btn" id="clearOrder" style="margin-top:6px">Очистить текст</button>
+
+
+      
 
       <div class="toolbar">
         <button class="btn" id="preview">Предпросмотр</button>
         <button class="btn" id="download">Скачать Excel</button>
         <label class="inline"><input type="checkbox" id="hideMatched"> Скрывать совпавшие</label>
         <label class="inline"><input type="checkbox" id="onlyProblems"> Только проблемные</label>
-        <input id="optionFilter" placeholder="Фильтр каталога справа... (по подстроке)">
       </div>
 
       <div class="legend">
@@ -534,6 +537,12 @@ document.getElementById('importMapFile').onchange=async(e)=>{
   }catch{ setInfo('Ошибка импорта JSON',true); }
 };
 document.getElementById('clearMap').onclick=async()=>{ if(confirm('Очистить память соответствий?')){ localStorage.removeItem(LS_KEY); renderMapEditor(); } };
+document.getElementById('clearOrder').onclick = () => {
+  document.getElementById('order').value = '';
+};
+
+
+  
 </script>
 </body>
 </html>
