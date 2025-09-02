@@ -247,22 +247,30 @@
         </table>
       </div>
 
-      <!-- правая: редактор памяти -->
-      <div class="rightCol">
-        <h3 style="margin:0 0 8px">Редактор соответствий</h3>
-        <div class="inline-controls">
-          <button class="btn" id="exportMap">Экспорт JSON</button>
-          <button class="btn" id="importMap">Импорт JSON</button>
-          <input id="importMapFile" type="file" accept="application/json" style="display:none">
-          <button class="btn" id="clearMap">Очистить</button>
-        </div>
-        <table>
-          <thead><tr><th>Ключ (из заказа)</th><th>Значение (каталог / #ROW:n)</th><th></th></tr></thead>
-          <tbody id="mapBody"></tbody>
-        </table>
-      </div>
+      <details class="editor" id="mapEditor">
+  <summary>Редактор соответствий (память)</summary>
+  <div style="margin-top:10px">
+    <div style="margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap">
+      <button id="exportMap" class="btn">Экспорт JSON</button>
+      <button id="importMap" class="btn">Импорт JSON</button>
+      <input id="importMapFile" type="file" accept=".json" style="display:none">
+      <button id="clearMap" class="btn">Очистить</button>
     </div>
+    <table id="mapTable">
+      <thead>
+        <tr>
+          <th>Ключ (из заказа)</th>
+          <th>Значение (каталог / #ROW:n)</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="mapBody"></tbody>
+    </table>
   </div>
+</details>
+
+
+
 
   <!-- модальное окно-лупа по каталогу -->
   <div class="modal" id="picker">
