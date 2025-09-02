@@ -14,7 +14,29 @@
   .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;max-width:1360px;margin:0 auto;padding:18px}
   h1{margin:0 0 10px}
 
-  /* компактные чекбоксы (одно правило) */
+  label{display:block;margin-top:10px;color:var(--mut);font-weight:600}
+  input,select,textarea,button{width:100%;border-radius:12px;border:1px solid #7aa2ff55;background:#0f1530;color:var(--fg);padding:10px;margin-top:6px}
+  textarea{min-height:220px;white-space:pre;font-family:ui-monospace,Consolas,Menlo,monospace}
+
+  .row{display:grid;grid-template-columns:1.2fr 0.8fr;gap:40px;align-items:start}
+  .btn{cursor:pointer;font-weight:700;background:var(--accent);width:auto;display:inline-block;margin-right:8px}
+
+  table{border-collapse:collapse;width:100%;margin-top:12px}
+  th,td{border-bottom:1px solid #7aa2ff55;padding:8px;vertical-align:top}
+  th{color:var(--mut)}
+
+  tr.unmatched td{background:#51202a}
+  tr.duplicate  td{background:#58461c}
+  tr.unmatched.duplicate td{background:#60313a}
+
+  .legend{display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap}
+  .chip{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid #7aa2ff55}
+  .chip.unm{background:#51202a}
+  .chip.dupl{background:#58461c}
+
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+
+  /* компактные чекбоксы */
   input[type="checkbox"]{
     width:14px;
     height:14px;
@@ -22,54 +44,20 @@
     accent-color:#7aa2ff;
     vertical-align:middle;
   }
-
-  /* подписи рядом с чекбоксами */
-  label{display:inline-flex;align-items:center;gap:6px}
   label.inline{display:inline-flex;align-items:center;gap:6px;margin:0}
 
-  /* ===== двухколоночная сетка ===== */
-  .row{
-    display:grid;
-    grid-template-columns: 1.2fr 0.8fr;
-    gap:40px;
-    align-items:start;
-  }
-
-  /* правая колонка фиксируется при скролле */
-  #mapCard,.map-card,.right,#rightPane{position:sticky;top:16px}
-
-  /* таблица редактора с прокруткой */
-  #mapTable,.map-table,#tbMap{max-height:calc(100vh - 220px);overflow:auto}
-
-  /* таблица и подсветка */
-  table{border-collapse:collapse;width:100%;margin-top:12px}
-  th,td{border-bottom:1px solid #7aa2ff55;padding:8px;vertical-align:top}
-  th{color:var(--mut)}
-  tr.unmatched td{background:#51202a}
-  tr.duplicate td{background:#58461c}
-  tr.unmatched.duplicate td{background:#60313a}
-
-  /* панель фильтров */
-  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
-
-  /* модалка выбора по каталогу */
-  #info{min-height:20px}.error{color:#ffa2a2}.ok{color:#b5ffbf}
+  #info{min-height:20px} .error{color:#ffa2a2} .ok{color:#b5ffbf}
   .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:50}
   .modal>.box{background:#0f1530;border:1px solid #7aa2ff55;border-radius:14px;max-width:900px;width:90%;padding:12px}
   .modal input{width:100%}
   .results{max-height:420px;overflow:auto;margin-top:8px;border:1px solid #7aa2ff33;border-radius:10px}
   .resitem{padding:8px 10px;border-bottom:1px solid #7aa2ff22;cursor:pointer}
   .resitem:hover{background:#15204a}
-
-  /* обёртка селекта и кнопка-оверлей (для поиска) */
   .selectWrap{position:relative}
-  .selectWrap select{pointer-events:none}     /* ВАЖНО: отключаем нативный селект */
+  .selectWrap select{pointer-events:auto}
   .selectCover{position:absolute;inset:0;background:transparent;border:none;border-radius:12px;cursor:pointer}
-
-  .rightCol{margin-top:8px}
-  .inline-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .muted{color:#9fb2ff}
 </style>
+
 
 </head>
 <body>
