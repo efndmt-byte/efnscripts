@@ -191,26 +191,112 @@ let catalog=[], assignments=[], lastRows=[], rowMetas=[]; // catalog: [{r,text,n
 dateInput.value=new Date().toISOString().slice(0,10);
 document.getElementById('clearOrder').onclick=()=>{ document.getElementById('order').value=''; };
 
-// IndexedDB для хранения выбранного шаблона
-const DB='ewl_order_prod_db', STORE='kv', KEY_BUF='template_buf', KEY_NAME='template_name';
-function idb(){ return new Promise((res,rej)=>{ const r=indexedDB.open(DB,1); r.onupgradeneeded=()=>r.result.createObjectStore(STORE); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
-async function getKV(k){ const d=await idb(); return new Promise((res,rej)=>{ const tx=d.transaction(STORE,'readonly'); const st=tx.objectStore(STORE); const r=st.get(k); r.onsuccess=()=>res(r.result||null); r.onerror=()=>rej(r.error); }); }
-async function setKV(k,v){ const d=await idb(); return new Promise((res,rej)=>{ const tx=d.transaction(STORE,'readwrite'); const st=tx.objectStore(STORE); const r=st.put(v,k); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); }); }
-async function delKV(k){ const d=await idb(); return new Promise((res,rej)=>{ const tx=d.transaction(STORE,'readwrite'); const st=tx.objectStore(STORE); const r=st.delete(k); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); }); }
+// ================= IndexedDB и кэш =================
+const DB = 'ewl_order_prod_db',
+      STORE = 'kv',
+      KEY_BUF = 'template_buf',
+      KEY_NAME = 'template_name',
+      KEY_CITIES = 'cities_cache_v1';
 
+function idb(){
+  return new Promise((res,rej)=>{
+    const r = indexedDB.open(DB,1);
+    r.onupgradeneeded = () => r.result.createObjectStore(STORE);
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function getKV(k){
+  const d = await idb();
+  return new Promise((res,rej)=>{
+    const tx=d.transaction(STORE,'readonly'), st=tx.objectStore(STORE), r=st.get(k);
+    r.onsuccess=()=>res(r.result||null); r.onerror=()=>rej(r.error);
+  });
+}
+async function setKV(k,v){
+  const d = await idb();
+  return new Promise((res,rej)=>{
+    const tx=d.transaction(STORE,'readwrite'), st=tx.objectStore(STORE), r=st.put(v,k);
+    r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
+  });
+}
+async function delKV(k){
+  const d = await idb();
+  return new Promise((res,rej)=>{
+    const tx=d.transaction(STORE,'readwrite'), st=tx.objectStore(STORE), r=st.delete(k);
+    r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
+  });
+}
+
+// ---- Справочник пиццерий (кэш в IndexedDB) ----
+function populateCities(cities){
+  const sel = document.getElementById('city');
+  if (!sel) return;
+  sel.innerHTML = '';
+  for (const {code,name} of (cities||[])){
+    const o = document.createElement('option');
+    o.value = name;
+    o.textContent = name;
+    o.dataset.code = code;
+    sel.appendChild(o);
+  }
+}
+async function getCachedCities(){ try { return await getKV(KEY_CITIES); } catch { return null; } }
+async function setCachedCities(cities){ try { await setKV(KEY_CITIES, cities); } catch {} }
+
+// (необязательно) diff для отладки изменений
+function diffCities(oldList=[], newList=[]){
+  const key = x => `${(x.code??'').toString().trim()}|${(x.name??'').toString().trim().toLowerCase()}`;
+  const oldSet = new Set(oldList.map(key));
+  const newSet = new Set(newList.map(key));
+  const added   = newList.filter(x=>!oldSet.has(key(x)));
+  const removed = oldList.filter(x=>!newSet.has(key(x)));
+  return { added, removed };
+}
+
+// ================= Автозагрузка при старте =================
 (async()=>{
-  try{
-    const buf=await getKV(KEY_BUF); const name=await getKV(KEY_NAME);
-    if(buf){ templateBuf=buf; templateName=name||'(запомненный)'; storedInfo.textContent='Шаблон: '+templateName; }
+  try {
+    // шаблон
+    const buf  = await getKV(KEY_BUF);
+    const name = await getKV(KEY_NAME);
+    if(buf){
+      templateBuf = buf;
+      templateName = name || '(запомненный)';
+      storedInfo.textContent = 'Шаблон: ' + templateName;
+    }
+
+    // пиццерии
+    const cachedCities = await getCachedCities();
+    if (cachedCities) {
+      populateCities(cachedCities);
+    }
+
     renderMapEditor();
-  }catch(e){ setInfo('IndexedDB недоступен (шаблон не будет запоминаться)',true); }
+  } catch(e){
+    setInfo('IndexedDB недоступен (шаблон/справочник не будут запоминаться)',true);
+  }
 })();
 
-document.getElementById('remember').onclick=async()=>{
-  const f=document.getElementById('tmpl').files[0]; if(!f){ setInfo('Выберите .xlsx',true); return; }
-  const buf=await f.arrayBuffer(); await setKV(KEY_BUF, buf); await setKV(KEY_NAME, f.name);
-  templateBuf=buf; templateName=f.name; storedInfo.textContent='Шаблон: '+f.name; setInfo('Шаблон запомнен');
+// ================= Кнопка "Запомнить шаблон" =================
+document.getElementById('remember').onclick = async()=>{
+  const f = document.getElementById('tmpl').files[0];
+  if(!f){ setInfo('Выберите .xlsx',true); return; }
+  const buf = await f.arrayBuffer();
+  await setKV(KEY_BUF, buf);
+  await setKV(KEY_NAME, f.name);
+  templateBuf = buf;
+  templateName = f.name;
+  storedInfo.textContent = 'Шаблон: '+f.name;
+  setInfo('Шаблон запомнен');
+
+  // ⚡ если при загрузке вытащили список городов, сохраним и его
+  if (window.citiesArray && Array.isArray(window.citiesArray)) {
+    await setCachedCities(window.citiesArray);
+    populateCities(window.citiesArray);
+  }
 };
+
 document.getElementById('clearStored').onclick=async()=>{
   await delKV(KEY_BUF); await delKV(KEY_NAME); templateBuf=null; templateName=null; storedInfo.textContent=''; setInfo('Шаблон забыли');
 };
