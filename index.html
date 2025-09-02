@@ -205,16 +205,14 @@ let catalog=[], assignments=[], lastRows=[], rowMetas=[]; // catalog: [{r,text,n
 dateInput.value=new Date().toISOString().slice(0,10);
 document.getElementById('clearOrder').onclick=()=>{ document.getElementById('order').value=''; };
 
-<!-- ================= IndexedDB и кэш ================= -->
 <script>
-// Имена ключей в IndexedDB
-const DB = 'ewl_order_prod_db';
-const STORE = 'kv';
-const KEY_BUF = 'template_buf';
-const KEY_NAME = 'template_name';
-const KEY_CITIES = 'cities_cache_v1';
+// ================= IndexedDB и кэш =================
+const DB = 'ewl_order_prod_db',
+      STORE = 'kv',
+      KEY_BUF = 'template_buf',
+      KEY_NAME = 'template_name',
+      KEY_CITIES = 'cities_cache_v1';
 
-// Базовые функции IndexedDB
 function idb(){
   return new Promise((res,rej)=>{
     const r = indexedDB.open(DB,1);
@@ -226,210 +224,211 @@ function idb(){
 async function getKV(k){
   const d = await idb();
   return new Promise((res,rej)=>{
-    const tx=d.transaction(STORE,'readonly');
-    const st=tx.objectStore(STORE);
-    const r=st.get(k);
-    r.onsuccess=()=>res(r.result ?? null);
-    r.onerror =()=>rej(r.error);
+    const tx=d.transaction(STORE,'readonly'), st=tx.objectStore(STORE), r=st.get(k);
+    r.onsuccess=()=>res(r.result||null); r.onerror=()=>rej(r.error);
   });
 }
 async function setKV(k,v){
   const d = await idb();
   return new Promise((res,rej)=>{
-    const tx=d.transaction(STORE,'readwrite');
-    const st=tx.objectStore(STORE);
-    const r=st.put(v,k);
-    r.onsuccess=()=>res();
-    r.onerror =()=>rej(r.error);
+    const tx=d.transaction(STORE,'readwrite'), st=tx.objectStore(STORE), r=st.put(v,k);
+    r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
   });
 }
 async function delKV(k){
   const d = await idb();
   return new Promise((res,rej)=>{
-    const tx=d.transaction(STORE,'readwrite');
-    const st=tx.objectStore(STORE);
-    const r=st.delete(k);
-    r.onsuccess=()=>res();
-    r.onerror =()=>rej(r.error);
+    const tx=d.transaction(STORE,'readwrite'), st=tx.objectStore(STORE), r=st.delete(k);
+    r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
   });
 }
 
-/* ---------- Список пиццерий (кэш + отрисовка + поиск) ---------- */
-
-// Отрисовать options в <select id="city">
-function populateCities(cities) {
+// ---- Справочник пиццерий ----
+function populateCities(cities){
   const sel = document.getElementById('city');
   if (!sel) return;
   sel.innerHTML = '';
-  if (!Array.isArray(cities)) return;
-
-  for (const { code, name } of cities) {
-    if (!name) continue;
+  for (const {code,name} of (cities||[])){
     const o = document.createElement('option');
     o.value = name;
     o.textContent = name;
-    if (code != null) o.dataset.code = String(code);
+    o.dataset.code = code;
     sel.appendChild(o);
   }
 }
-
-// Кэширование списка
-async function getCachedCities(){ try { const v = await getKV(KEY_CITIES); return Array.isArray(v)?v:null; } catch { return null; } }
+async function getCachedCities(){ try { return await getKV(KEY_CITIES); } catch { return null; } }
 async function setCachedCities(cities){ try { await setKV(KEY_CITIES, cities); } catch {} }
 
-// Поиск по полю #citySearch
-function hookCitySearch() {
-  const input = document.getElementById('citySearch');
-  const sel   = document.getElementById('city');
-  if (!input || !sel) return;
-
-  input.addEventListener('input', () => {
-    const q = (input.value || '').trim().toLowerCase();
-    [...sel.options].forEach(opt => {
-      const txt = (opt.textContent || '').toLowerCase();
-      opt.hidden = q && !txt.includes(q);
-    });
-  });
-}
-
-/* ---------- Извлечение городов из workbook (лист L1 / похожие) ---------- */
-
-function extractCitiesFromWorkbook(wb) {
-  if (!wb) return [];
-
-  // ищем L1 или похожие листы
-  const candidates = ['L1','Л1','L_1','L-1'];
-  let sh = null;
-  for (const n of candidates) if (wb.Sheets[n]) { sh = wb.Sheets[n]; break; }
-  if (!sh) {
-    const guess = wb.SheetNames.find(n => /l1|список|города|пиццер/i.test(n)) || wb.SheetNames[0];
-    sh = wb.Sheets[guess];
-  }
-  if (!sh) return [];
-
-  // читаем как матрицу
-  const rows = XLSX.utils.sheet_to_json(sh, { header: 1, blankrows: false, defval:'' });
-  if (!rows.length) return [];
-
-  // определяем колонки
-  const hdr = rows[0].map(v => (v ?? '').toString().trim().toLowerCase());
-  let codeCol = -1, nameCol = -1;
-  hdr.forEach((h,i)=>{
-    if (codeCol<0 && /код|code/i.test(h)) codeCol = i;
-    if (nameCol<0 && /(назв|пиццер|город|name)/i.test(h)) nameCol = i;
-  });
-  if (nameCol < 0 && rows[0].length >= 3) { codeCol = 1; nameCol = 2; } // B=код, C=назв
-
-  const out = [];
-  for (let r=1; r<rows.length; r++){
-    const row = rows[r] || [];
-    const name = (row[nameCol] ?? '').toString().trim();
-    const code = row[codeCol] ?? null;
-    if (!name) continue;
-    out.push({ code, name });
-  }
-  return out;
-}
-
-/* ---------- Автозагрузка при старте страницы ---------- */
-
-(async () => {
+// ================= Автозагрузка при старте =================
+(async()=>{
   try {
-    // подтягиваем запомненный шаблон (если был)
+    // шаблон
     const buf  = await getKV(KEY_BUF);
     const name = await getKV(KEY_NAME);
-    if (buf) {
-      templateBuf   = buf;                    // глобальные переменные у вас уже есть
-      templateName  = name || '(запомненный)';
+    if(buf){
+      templateBuf = buf;
+      templateName = name || '(запомненный)';
       storedInfo.textContent = 'Шаблон: ' + templateName;
     }
 
-    // подхватываем кэш пиццерий и сразу показываем
+    // пиццерии
     const cachedCities = await getCachedCities();
-    if (cachedCities && cachedCities.length) {
+    if (cachedCities) {
       populateCities(cachedCities);
-      window.citiesArray = cachedCities;     // если нужно ещё где-то
     }
 
-    // включаем поиск по списку пиццерий
-    hookCitySearch();
-
-    // перерисуем редактор соответствий
     renderMapEditor();
-  } catch(e) {
-    setInfo('IndexedDB недоступен (шаблон/справочник не будут запоминаться)', true);
+  } catch(e){
+    setInfo('IndexedDB недоступен (шаблон/справочник не будут запоминаться)',true);
   }
 })();
 
-/* ---------- Кнопки запомнить/очистить шаблон ---------- */
-
-document.getElementById('remember').onclick = async () => {
+// ================= Кнопка "Запомнить шаблон" =================
+document.getElementById('remember').onclick = async()=>{
   const f = document.getElementById('tmpl').files[0];
-  if (!f) { setInfo('Выберите .xlsx', true); return; }
-
+  if(!f){ setInfo('Выберите .xlsx',true); return; }
   const buf = await f.arrayBuffer();
   await setKV(KEY_BUF, buf);
   await setKV(KEY_NAME, f.name);
-
-  templateBuf  = buf;
+  templateBuf = buf;
   templateName = f.name;
-  storedInfo.textContent = 'Шаблон: ' + f.name;
+  storedInfo.textContent = 'Шаблон: '+f.name;
   setInfo('Шаблон запомнен');
 
-  // если к этому моменту уже извлекли список городов — тоже сохраним
-  if (Array.isArray(window.citiesArray) && window.citiesArray.length) {
+  // ⚡ если при загрузке вытащили список городов, сохраним и его
+  if (window.citiesArray && Array.isArray(window.citiesArray)) {
     await setCachedCities(window.citiesArray);
     populateCities(window.citiesArray);
   }
 };
 
-document.getElementById('clearStored').onclick = async () => {
-  await delKV(KEY_BUF);
-  await delKV(KEY_NAME);
-  templateBuf = null;
-  templateName = null;
-  storedInfo.textContent = '';
-  setInfo('Шаблон забыли');
+document.getElementById('clearStored').onclick=async()=>{
+  await delKV(KEY_BUF); await delKV(KEY_NAME); templateBuf=null; templateName=null;
+  storedInfo.textContent=''; setInfo('Шаблон забыли');
 };
 
-/* ---------- ДОПОЛНЕНИЕ: правка вашей readCatalogAndL1() ---------- */
-/* ВНИМАНИЕ: ниже только функция. Вставьте её вместо вашей версии,
-   чтобы при чтении шаблона мы также вытаскивали города и обновляли кэш. */
-
+// ------------------- чтение шаблона -------------------
 async function readCatalogAndL1(){
-  const f   = document.getElementById('tmpl').files[0];
-  const buf = f ? await f.arrayBuffer() : (templateBuf || await getKV(KEY_BUF));
-  if (!buf) throw new Error('Нет шаблона');
+  const f=document.getElementById('tmpl').files[0];
+  const buf = f?await f.arrayBuffer():(templateBuf||await getKV(KEY_BUF));
+  if(!buf) throw new Error('Нет шаблона');
+  const wb = XLSX.read(buf,{type:'array',cellText:true,cellDates:true,cellNF:true});
+  const order = wb.Sheets['Order']; if(!order) throw new Error('Нет листа Order');
+  const ref = order['!ref'] || 'A1'; const range=XLSX.utils.decode_range(ref);
+  const list=[]; for(let r=14;r<=range.e.r+1;r++){ const addr=XLSX.utils.encode_cell({c:3,r:r-1}); const cell=order[addr];
+    if(!cell) continue; const text=(cell.w!=null?String(cell.w):(cell.v!=null?String(cell.v):'')).trim(); if(text) list.push({r,text,norm:norm(text)}); }
+  catalog=list;
 
-  const wb = XLSX.read(buf, { type:'array', cellText:true, cellDates:true, cellNF:true });
-
-  // --- Каталог (лист Order, колонка D начиная с 14 строки)
-  const order = wb.Sheets['Order']; 
-  if (!order) throw new Error('Нет листа Order');
-  const ref = order['!ref'] || 'A1';
-  const range = XLSX.utils.decode_range(ref);
-  const list = [];
-  for (let r=14; r<=range.e.r+1; r++){
-    const addr = XLSX.utils.encode_cell({ c:3, r:r-1 }); // D
-    const cell = order[addr];
-    if (!cell) continue;
-    const text = (cell.w!=null ? String(cell.w) : (cell.v!=null?String(cell.v):'')).trim();
-    if (text) list.push({ r, text, norm: norm(text) });
+  // города
+  const l1 = wb.Sheets['L1'];
+  if(l1){
+    const rows=XLSX.utils.sheet_to_json(l1,{header:1,defval:''});
+    const arr=[];
+    for(let i=1;i<rows.length;i++){
+      const code=String(rows[i][1]??'').trim();
+      const city=String(rows[i][2]??'').trim();
+      if(city) arr.push({code,name:city});
+    }
+    if(arr.length){
+      window.citiesArray = arr;
+      populateCities(arr);
+      await setCachedCities(arr);
+    }
   }
-  catalog = list;
-
-  // --- Пиццерии (лист L1 или аналог)
-  const cities = extractCitiesFromWorkbook(wb);
-  if (cities.length) {
-    window.citiesArray = cities;
-    populateCities(cities);
-    setCachedCities(cities); // обновим кэш
-  } else {
-    // если не нашли — не падаем, просто оставляем как было
-  }
-
-  return buf; // понадобится для XlsxPopulate
+  return buf;
 }
-</script>
 
+// ------------------- предпросмотр -------------------
+document.getElementById('preview').onclick = async ()=>{
+  try{
+    setInfo('');
+    await readCatalogAndL1();
+    const rows=parseOrder(document.getElementById('order').value);
+    buildTable(rows);
+    setInfo(`Каталог загружен: ${catalog.length} позиций.`);
+  }catch(e){ setInfo(e.message,true); }
+};
+
+// ------------------- скачивание Excel -------------------
+function safeFilename(s){ return s.replace(/[\\/:*?"<>|]+/g,' ').replace(/\s{2,}/g,' ').trim(); }
+function buildFilename(){ 
+  const city = citySel.value || (citySel.options[0]?.value||'EWL_Order');
+  const dt = document.getElementById('date').value;
+  let ddmm = 'дата'; if(dt){ const [yyyy,mm,dd]=dt.split('-'); ddmm=`${dd}.${mm}.${yyyy}`; }
+  return `${city} ${ddmm}.xlsx`;
+}
+document.getElementById('download').onclick = async ()=>{
+  try{
+    setInfo('');
+    const buf = await readCatalogAndL1();
+    const wb = await XlsxPopulate.fromDataAsync(buf);
+    const order=wb.sheet('Order'); const l1=wb.sheet('L1');
+    // D2 — код + город
+    const city = citySel.value || (citySel.options[0]?.value||'');
+    let code=''; if(l1){ const end=l1.usedRange().endCell().rowNumber(); const nrm=s=>String(s??'').toLowerCase().trim();
+      for(let r=2;r<=end;r++){ const b=l1.cell(r,2).value(), c=l1.cell(r,3).value(); if(nrm(c)===nrm(city)){ code=(typeof b==='number')?String(Math.trunc(b)):String(b??''); break; } } }
+    const merged = (city==='Тольятти-5') ? '1369-Тольятти-5' : (code ? `${code} - ${city}` : city);
+    order.cell('D2').value(merged);
+    // D8 — дата
+    const dt=document.getElementById('date').value; if(dt){ const [yy,mm,dd]=dt.split('-'); order.cell('D8').value(`${dd}.${mm}.${yy}`); }
+    // F — очистить и записать количества
+    const endRow=order.usedRange().endCell().rowNumber(); for(let r=14;r<=endRow;r++) order.cell(r,6).value(null);
+    let written=0; for(const a of assignments){ if(a.destR!=null && a.destR>=14 && a.destR<=endRow){ order.cell(a.destR,6).value(a.qty); written++; } }
+    const out=await wb.outputAsync(); const blob=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=safeFilename(buildFilename()); a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+    setInfo(`Скачано. Записано позиций: ${written}`);
+  }catch(e){ setInfo(e.message,true); }
+};
+
+// ------------------- поиск пиццерии -------------------
+citySearch.addEventListener('input',()=>{
+  const q=norm(citySearch.value);
+  for(const opt of citySel.options){
+    const show=!q||norm(opt.textContent).includes(q);
+    opt.style.display=show?'':'none';
+  }
+});
+
+// ------------------- редактор памяти -------------------
+const mapBody=document.getElementById('mapBody');
+function renderMapEditor(){
+  const mem=loadMemory();
+  mapBody.innerHTML='';
+  for(const [k,v] of Object.entries(mem.map)){
+    let shownText=v;
+    if(!v.startsWith('#ROW:')){
+      for(const c of catalog){ if(c.norm===v){ shownText=c.text; break; } }
+    }
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td contenteditable="true" class="key">${k}</td>
+                    <td contenteditable="true" class="val">${shownText}</td>
+                    <td><button class="btn" style="padding:6px 10px">✕</button></td>`;
+    const del=tr.querySelector('button');
+    del.onclick=()=>{ const mem=loadMemory(); delete mem.map[k]; saveMemory(mem); renderMapEditor(); };
+    tr.querySelector('.key').onblur=()=>{
+      const newK=norm(tr.querySelector('.key').textContent||'');
+      const mem=loadMemory(); const cur=mem.map[k]; delete mem.map[k]; if(newK) mem.map[newK]=cur; saveMemory(mem); renderMapEditor();
+    };
+    tr.querySelector('.val').onblur=()=>{
+      const newVal=norm(tr.querySelector('.val').textContent||'');
+      const mem=loadMemory(); mem.map[k]=newVal; saveMemory(mem); renderMapEditor();
+    };
+    mapBody.appendChild(tr);
+  }
+}
+document.getElementById('exportMap').onclick=()=>{
+  const mem=loadMemory();
+  const blob=new Blob([JSON.stringify(mem,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ewl_mapping_text.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1200);
+};
+document.getElementById('importMap').onclick=()=> document.getElementById('importMapFile').click();
+document.getElementById('importMapFile').onchange=async(e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{ const txt=await f.text(); const data=JSON.parse(txt); if(!data.map) throw new Error('Нет поля map');
+    localStorage.setItem(LS_KEY, JSON.stringify({version:2,map:data.map})); renderMapEditor(); setInfo('Импортировано'); }catch{ setInfo('Ошибка импорта JSON', true); }
+};
+document.getElementById('clearMap').onclick=async()=>{ if(confirm('Очистить память соответствий?')){ localStorage.removeItem(LS_KEY); renderMapEditor(); } };
+</script>
+</body>
+</html>
 
