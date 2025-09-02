@@ -144,7 +144,6 @@
         <button class="btn" id="download">Скачать Excel</button>
         <label class="inline"><input type="checkbox" id="hideMatched"> Скрывать совпавшие</label>
         <label class="inline"><input type="checkbox" id="onlyProblems"> Только проблемные</label>
-        <input id="optionFilter" placeholder="Фильтр каталога справа... (по подстроке)">
       </div>
 
       <div class="legend">
@@ -389,10 +388,13 @@ function renderPickerResults(q){
 
 /* фильтры по строке справа */
 const optionFilter=document.getElementById('optionFilter');
-optionFilter.addEventListener('input', ()=>{
-  const f=norm(optionFilter.value);
-  for(const m of rowMetas) rebuildOptions(m.sel,f);
-});
+if (optionFilter) {
+  optionFilter.addEventListener('input', ()=>{
+    const f=norm(optionFilter.value);
+    for(const m of rowMetas) rebuildOptions(m.sel, f);
+  });
+}
+
 function rebuildOptions(sel,filter){
   const keep=sel.value;
   sel.innerHTML='<option value="">— выберите —</option>' + catalog.filter(c=>!filter||c.norm.includes(filter)).map(c=>`<option value="${c.r}">${c.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</option>`).join('');
