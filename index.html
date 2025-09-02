@@ -262,6 +262,23 @@ const picker=document.getElementById('picker');
 const pickerQuery=document.getElementById('pickerQuery');
 const pickerResults=document.getElementById('pickerResults');
 const pickerClose=document.getElementById('pickerClose');
+
+// 🔧 Фильтрация списка при наборе в поисковой строке
+pickerQuery.addEventListener('input', (e) => {
+  renderPickerResults(e.target.value);
+});
+
+// (необязательно) Навигация стрелками + Enter для выбора первого видимого
+pickerQuery.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const first = pickerResults.querySelector('.resitem[data-r]');
+    if (first) {
+      first.click(); // выбрать первое
+      e.preventDefault();
+    }
+  }
+});
+
 let activePickerSel=null;
 function openPicker(forSelect){ activePickerSel=forSelect; picker.style.display='flex'; pickerQuery.value=''; renderPickerResults(''); pickerQuery.focus(); }
 function closePicker(){ picker.style.display='none'; activePickerSel=null; }
