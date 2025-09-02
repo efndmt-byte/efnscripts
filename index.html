@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EWL Order — текстовая память соответствий</title>
+<link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'/>">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-populate/browser/xlsx-populate.min.js"></script>
 <style>
@@ -24,20 +25,6 @@
   .chip{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid #7aa2ff55}
   .chip.unm{background:#51202a} .chip.dupl{background:#58461c}
   .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
-
-  input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
-  border-radius: 4px; /* лёгкое скругление */
-  accent-color: #7aa2ff; /* цвет галочки и фона чекбокса */
-}
-
-  label {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px; /* расстояние между квадратиком и текстом */
-}
-  
   #info{min-height:20px} .error{color:#ffa2a2} .ok{color:#b5ffbf}
   .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:50}
   .modal>.box{background:#0f1530;border:1px solid #7aa2ff55;border-radius:14px;max-width:900px;width:90%;padding:12px}
@@ -46,166 +33,165 @@
   .resitem{padding:8px 10px;border-bottom:1px solid #7aa2ff22;cursor:pointer}
   .resitem:hover{background:#15204a}
   .selectWrap{position:relative}
-  .selectWrap select{pointer-events:none}
-  .selectCover{position:absolute;inset:0;background:transparent;border-radius:12px;border:none;cursor:pointer}
+  .selectWrap select{pointer-events:auto}
+  .selectCover{position:absolute;inset:0;background:transparent;border:none;border-radius:12px;cursor:pointer}
+
+  input[type="checkbox"]{width:14px;height:14px;border-radius:4px;accent-color:#7aa2ff;vertical-align:middle}
+  label.inline{display:inline-flex;align-items:center;gap:6px;margin:0}
+
+  .rightCol{margin-top:8px}
+  .inline-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .muted{color:#9fb2ff}
 </style>
 </head>
 <body>
-<div class="card">
-  <h1>EWL Order</h1>
+  <div class="card">
+    <h1>EWL Order</h1>
 
-  <label>Шаблон Excel (.xlsx)</label>
-  <input type="file" id="tmpl" accept=".xlsx">
-  <div class="toolbar" style="margin-top:6px">
-    <button class="btn" id="remember">Запомнить шаблон</button>
-    <button class="btn" id="clearStored">Забыть шаблон</button>
-    <span id="storedInfo" style="color:#9fb2ff"></span>
-  </div>
+    <div class="row">
+      <!-- левая: ввод заказа -->
+      <div>
+        <label>Шаблон (.xlsx)
+          <input type="file" id="tmpl" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+        </label>
+        <div class="inline-controls" style="margin-top:8px">
+          <button class="btn" id="remember">Запомнить шаблон</button>
+          <button class="btn" id="clearStored">Забыть</button>
+          <span id="storedInfo" class="muted"></span>
+        </div>
 
-  <div class="row" style="margin-top:10px">
-    <div>
-      <label>Текст заказа</label>
-      <textarea id="order" placeholder="После «Наименование» — по строке на позицию, число в конце — количество."></textarea>
-      <div class="toolbar">
-        <button class="btn" id="clearOrder">Очистить текст</button>
+        <div class="inline-controls" style="margin-top:12px">
+          <label style="flex:1">Дата
+            <input type="date" id="date">
+          </label>
+          <label style="flex:2">Ресторан — поиск
+            <input id="citySearch" placeholder="Поиск пиццерии…">
+          </label>
+        </div>
+        <label style="margin-top:8px">Ресторан — выбор
+          <select id="city"></select>
+        </label>
+
+        <label style="margin-top:14px">Текст заказа
+          <textarea id="order" placeholder="Вставьте заказ сюда..."></textarea>
+        </label>
+
+        <div class="toolbar">
+          <button class="btn" id="preview">Предпросмотр</button>
+          <button class="btn" id="download">Скачать Excel</button>
+          <label class="inline"><input type="checkbox" id="hideMatched"> Скрывать совпавшие</label>
+          <label class="inline"><input type="checkbox" id="onlyProblems"> Только проблемные</label>
+          <input id="optionFilter" placeholder="Фильтр каталога справа... (по подстроке)">
+        </div>
+
+        <div class="legend">
+          <span class="chip unm">не найдено</span>
+          <span class="chip dupl">повтор</span>
+          <span id="statMatched" class="muted">Совпадений: 0 / 0</span>
+          <span id="statTotal" class="muted">Итого заказано единиц: 0</span>
+        </div>
+
+        <div id="info" style="margin-top:6px"></div>
+
+        <table>
+          <thead><tr><th>Наименование (из заказа)</th><th>Соответствие (каталог)</th><th>Кол-во</th></tr></thead>
+          <tbody id="tbMap"></tbody>
+        </table>
+      </div>
+
+      <!-- правая: редактор памяти -->
+      <div class="rightCol">
+        <h3 style="margin:0 0 8px">Редактор соответствий</h3>
+        <div class="inline-controls">
+          <button class="btn" id="exportMap">Экспорт JSON</button>
+          <button class="btn" id="importMap">Импорт JSON</button>
+          <input id="importMapFile" type="file" accept="application/json" style="display:none">
+          <button class="btn" id="clearMap">Очистить</button>
+        </div>
+        <table>
+          <thead><tr><th>Ключ (из заказа)</th><th>Значение (каталог / #ROW:n)</th><th></th></tr></thead>
+          <tbody id="mapBody"></tbody>
+        </table>
       </div>
     </div>
-    <div>
-      <label>Ресторан</label>
-      <input id="citySearch" type="text" placeholder="Поиск пиццерии...">
-      <select id="city" size="8" style="height:220px"></select>
-      <label>Дата</label>
-      <input type="date" id="date">
-      <div class="toolbar">
-        <button class="btn" id="preview">Предпросмотр</button>
-        <button class="btn" id="download">Скачать Excel</button>
+  </div>
+
+  <!-- модальное окно-лупа по каталогу -->
+  <div class="modal" id="picker">
+    <div class="box">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="pickerQuery" placeholder="Ищите по подстроке…">
+        <button class="btn" id="pickerClose" style="margin:0">Закрыть</button>
       </div>
-      <div style="margin-top:8px;color:#cde3ff">
-        <div id="statMatched">Совпадений: 0 / 0</div>
-        <div id="statTotal">Итого заказано единиц: 0</div>
-        <div id="info"></div>
-        <div class="legend"><span class="chip unm">нет совпадения</span><span class="chip dupl">дубликат</span></div>
-      </div>
+      <div class="results" id="pickerResults"></div>
     </div>
   </div>
-
-  <div class="toolbar">
-    <label style="display:flex;gap:8px"><input type="checkbox" id="hideMatched">Скрывать совпавшие</label>
-    <label style="display:flex;gap:8px"><input type="checkbox" id="onlyProblems">Только проблемные</label>
-    <input type="text" id="optionFilter" placeholder="Фильтр по Order!D (подстрока)">
-  </div>
-
-  <label>Соответствия (память по тексту)</label>
-  <table>
-    <thead><tr><th>Из заказа</th><th>Order!D (текст)</th><th>Qty</th></tr></thead>
-    <tbody id="tbMap"></tbody>
-  </table>
-
-  <details style="margin-top:16px">
-    <summary>Редактор соответствий (память)</summary>
-    <div class="toolbar">
-      <button class="btn" id="exportMap" style="padding:6px 10px">Экспорт JSON</button>
-      <input type="file" id="importMapFile" accept=".json" style="display:none">
-      <button class="btn" id="importMap" style="padding:6px 10px">Импорт JSON</button>
-      <button class="btn" id="clearMap" style="padding:6px 10px">Очистить память соответствий</button>
-    </div>
-    <table id="mapTable">
-      <thead><tr><th>Ключ (normalize из заказа)</th><th>Шаблонный текст (normalize из Order!D)</th><th></th></tr></thead>
-      <tbody id="mapBody"></tbody>
-    </table>
-  </details>
-</div>
-
-<!-- Оверлей-поиск -->
-<div class="modal" id="picker">
-  <div class="box">
-    <input type="text" id="pickerQuery" placeholder="Ищите по подстроке, можно несколько слов через пробел">
-    <div class="results" id="pickerResults"></div>
-    <div style="display:flex;justify-content:flex-end;margin-top:8px">
-      <button class="btn" id="pickerClose" style="padding:6px 10px">Закрыть (Esc)</button>
-    </div>
-  </div>
-</div>
 
 <script>
-// ------------------- утилиты -------------------
-const infoEl = document.getElementById('info');
-function setInfo(msg,isErr=false){ infoEl.textContent = msg||''; infoEl.classList.toggle('error', !!isErr); infoEl.classList.toggle('ok', !!(!isErr && msg)); }
-window.addEventListener('error', e=>setInfo(e.message,true));
-window.addEventListener('unhandledrejection', e=>setInfo(String(e.reason?.message||e.reason),true));
+/* ====================== БАЗОВЫЕ УТИЛЫ ====================== */
+const LS_KEY='ewl_map_v2';
 
-function norm(s) {
-  return String(s ?? "")
+function norm(s){
+  return String(s||'')
     .toLowerCase()
     .replace(/[ё]/g,'е')
-    .replace(/[“”«»„‟"']/g,'')
-    .replace(/[–—―−‐-]/g,'-')
-    .replace(/[_/\\]/g,' ')
-    .replace(/\s*\([^)]*\)\s*/g,' ')
-    .replace(/\s*\[[^\]]*\]\s*/g,' ')
-    .replace(/[.,;:!?\-()]/g,' ')
-    .replace(/\s{2,}/g,' ')
+    .replace(/["'`]/g,'')
+    .replace(/\s+/g,' ')
     .trim();
 }
-function normalizeLines(t){ return t.replace(/\u00A0/g,' ').replace(/\r\n|\n|\r/g,'\n'); }
-function findStartIndex(lines){ for(let i=0;i<lines.length;i++){ const s=lines[i].toLowerCase().replace(/[^\p{L}]+/gu,'').trim(); if(s.startsWith('наименование')) return i+1; } return -1; }
-function lastNumberLax(str){ const m=str.match(/(\d+(?:[.,]\d+)?)(?:\D*)$/u); if(!m) return null; const v=parseFloat(m[1].replace(',','.')); return Number.isFinite(v)?v:null; }
-function parseOrder(text){ const lines=normalizeLines(text).split('\n'); const start=findStartIndex(lines); const rows=[]; if(start<0) return rows; for(let i=start;i<lines.length;i++){ let line=lines[i].trim(); if(!line) continue; const qty=lastNumberLax(line); if(qty==null) continue; line=line.replace(/(\d+(?:[.,]\d+)?)(?:\D*)$/u,'').trim(); if(!line) continue; rows.push([line,qty]); } return rows; }
 
-// ------------------- память v2 (localStorage) -------------------
-const LS_KEY='ewl_mapper_v2'; // { version:2, map: { userNorm: templateNorm } }
-
+// память соответствий (localStorage)
 function loadMemory(){
   try{
     const raw=localStorage.getItem(LS_KEY);
     if(!raw) return {version:2,map:{}};
     const data=JSON.parse(raw);
-    if(data.version===2 && data.map) return data;
+    if(!data.map) return {version:2,map:{}};
+    return {version:2,map:data.map};
+  }catch{ return {version:2,map:{}}; }
+}
+function saveMemory(obj){ localStorage.setItem(LS_KEY, JSON.stringify(obj)); }
+function rememberMatch(srcText, templText){
+  const mem=loadMemory();
+  const key=norm(srcText), val=norm(templText);
+  mem.map[key]=val; saveMemory(mem);
+}
+function forgetMatch(srcText){
+  const mem=loadMemory(); const key=norm(srcText);
+  delete mem.map[key]; saveMemory(mem);
+}
 
-    // попытка миграции из старых форматов
-    const migrated={version:2,map:{}};
-    const old = data.map || data || {};
-    for(const [userNorm,val] of Object.entries(old)){
-      if(val && typeof val==='object'){
-        if(val.templateText){ migrated.map[userNorm]=norm(val.templateText); }
-        else if(typeof val.destR==='number'){ migrated.map[userNorm]=`#ROW:${val.destR}`; }
-      }
+// парсинг заказа: берём строки после "Наименование", qty = последнее число/целое
+function parseOrder(text){
+  const lines = String(text||'').split(/\r?\n/);
+  let start = 0;
+  for(let i=0;i<lines.length;i++){
+    if (/наименован/i.test(lines[i])) { start = i+1; break; }
+  }
+  const out = [];
+  for(let i=start;i<lines.length;i++){
+    const line = lines[i].trim();
+    if(!line) continue;
+    const m = line.match(/(.+?)\s+(-?\d+(?:[.,]\d+)?)\s*$/); // имя ... qty
+    if(m){
+      const name = m[1].trim();
+      const qty  = m[2].replace(',', '.');
+      out.push([name, parseFloat(qty)]);
+    } else {
+      // если нет количества, игнорим строку
     }
-    localStorage.setItem(LS_KEY, JSON.stringify(migrated));
-    return migrated;
-  }catch(e){ return {version:2,map:{}}; }
-}
-function saveMemory(mem){ localStorage.setItem(LS_KEY, JSON.stringify(mem)); }
-function rememberMatch(userText, templateText){
-  const mem=loadMemory();
-  mem.map[norm(userText)] = norm(templateText);
-  saveMemory(mem);
-}
-function forgetMatch(userText){
-  const mem=loadMemory();
-  delete mem.map[norm(userText)];
-  saveMemory(mem);
+  }
+  return out;
 }
 
-// ------------------- состояние страницы -------------------
-const storedInfo = document.getElementById('storedInfo');
-const citySel = document.getElementById('city');
-const citySearch = document.getElementById('citySearch');
-const dateInput = document.getElementById('date');
-const tbMap = document.getElementById('tbMap');
-const statMatched = document.getElementById('statMatched');
-const statTotal = document.getElementById('statTotal');
-const hideMatched = document.getElementById('hideMatched');
-const onlyProblems = document.getElementById('onlyProblems');
-const optionFilter = document.getElementById('optionFilter');
+function setInfo(msg, isErr=false){
+  const box=document.getElementById('info');
+  if(!box) return;
+  box.innerHTML = isErr ? `<span class="error">${msg}</span>` : `<span class="ok">${msg}</span>`;
+}
 
-let templateBuf=null, templateName=null;
-let catalog=[], assignments=[], lastRows=[], rowMetas=[]; // catalog: [{r,text,norm}]
+/* ====================== ОТ IndexedDB И ДО КОНЦА ====================== */
 
-dateInput.value=new Date().toISOString().slice(0,10);
-document.getElementById('clearOrder').onclick=()=>{ document.getElementById('order').value=''; };
-
-<script>
 // ================= IndexedDB и кэш =================
 const DB = 'ewl_order_prod_db',
       STORE = 'kv',
@@ -259,6 +245,12 @@ function populateCities(cities){
 async function getCachedCities(){ try { return await getKV(KEY_CITIES); } catch { return null; } }
 async function setCachedCities(cities){ try { await setKV(KEY_CITIES, cities); } catch {} }
 
+// Глобальные переменные таблицы
+let catalog=[];       // [{r,text,norm}]
+let assignments=[];   // [{src,qty,destR}]
+let lastRows=[];      // [[src,qty]...]
+let rowMetas=[];      // [{tr,sel,isDup}...]
+
 // ================= Автозагрузка при старте =================
 (async()=>{
   try {
@@ -266,15 +258,17 @@ async function setCachedCities(cities){ try { await setKV(KEY_CITIES, cities); }
     const buf  = await getKV(KEY_BUF);
     const name = await getKV(KEY_NAME);
     if(buf){
-      templateBuf = buf;
-      templateName = name || '(запомненный)';
-      storedInfo.textContent = 'Шаблон: ' + templateName;
+      window.templateBuf = buf;
+      window.templateName = name || '(запомненный)';
+      const storedInfo = document.getElementById('storedInfo');
+      if(storedInfo) storedInfo.textContent = 'Шаблон: ' + window.templateName;
     }
 
     // пиццерии
     const cachedCities = await getCachedCities();
     if (cachedCities) {
       populateCities(cachedCities);
+      window.citiesArray = cachedCities;
     }
 
     renderMapEditor();
@@ -290,9 +284,10 @@ document.getElementById('remember').onclick = async()=>{
   const buf = await f.arrayBuffer();
   await setKV(KEY_BUF, buf);
   await setKV(KEY_NAME, f.name);
-  templateBuf = buf;
-  templateName = f.name;
-  storedInfo.textContent = 'Шаблон: '+f.name;
+  window.templateBuf = buf;
+  window.templateName = f.name;
+  const storedInfo = document.getElementById('storedInfo');
+  if(storedInfo) storedInfo.textContent = 'Шаблон: '+f.name;
   setInfo('Шаблон запомнен');
 
   // ⚡ если при загрузке вытащили список городов, сохраним и его
@@ -303,23 +298,32 @@ document.getElementById('remember').onclick = async()=>{
 };
 
 document.getElementById('clearStored').onclick=async()=>{
-  await delKV(KEY_BUF); await delKV(KEY_NAME); templateBuf=null; templateName=null;
-  storedInfo.textContent=''; setInfo('Шаблон забыли');
+  await delKV(KEY_BUF); await delKV(KEY_NAME); window.templateBuf=null; window.templateName=null;
+  const storedInfo = document.getElementById('storedInfo'); if(storedInfo) storedInfo.textContent='';
+  setInfo('Шаблон забыли');
 };
 
 // ------------------- чтение шаблона -------------------
 async function readCatalogAndL1(){
   const f=document.getElementById('tmpl').files[0];
-  const buf = f?await f.arrayBuffer():(templateBuf||await getKV(KEY_BUF));
+  const buf = f?await f.arrayBuffer():(window.templateBuf||await getKV(KEY_BUF));
   if(!buf) throw new Error('Нет шаблона');
   const wb = XLSX.read(buf,{type:'array',cellText:true,cellDates:true,cellNF:true});
+
+  // Catalog из Order!D14:D...
   const order = wb.Sheets['Order']; if(!order) throw new Error('Нет листа Order');
   const ref = order['!ref'] || 'A1'; const range=XLSX.utils.decode_range(ref);
-  const list=[]; for(let r=14;r<=range.e.r+1;r++){ const addr=XLSX.utils.encode_cell({c:3,r:r-1}); const cell=order[addr];
-    if(!cell) continue; const text=(cell.w!=null?String(cell.w):(cell.v!=null?String(cell.v):'')).trim(); if(text) list.push({r,text,norm:norm(text)}); }
+  const list=[];
+  for(let r=14;r<=range.e.r+1;r++){
+    const addr=XLSX.utils.encode_cell({c:3,r:r-1}); // D
+    const cell=order[addr];
+    if(!cell) continue;
+    const text=(cell.w!=null?String(cell.w):(cell.v!=null?String(cell.v):'')).trim();
+    if(text) list.push({r,text,norm:norm(text)});
+  }
   catalog=list;
 
-  // города
+  // Пиццерии из L1 (если есть)
   const l1 = wb.Sheets['L1'];
   if(l1){
     const rows=XLSX.utils.sheet_to_json(l1,{header:1,defval:''});
@@ -338,7 +342,147 @@ async function readCatalogAndL1(){
   return buf;
 }
 
-// ------------------- предпросмотр -------------------
+function buildTemplateIndex(){
+  const idx=new Map(); for(const c of catalog){ idx.set(c.norm, c.r); } return idx;
+}
+
+// авто-поиск если памяти нет
+function autoMatchByIncludes(userTextNorm){
+  let hit = catalog.find(c=>c.norm.includes(userTextNorm)||userTextNorm.includes(c.norm));
+  if(hit) return hit.r;
+  const terms=userTextNorm.split(' ').filter(Boolean);
+  hit = catalog.find(c=> terms.every(t=>c.norm.includes(t)) );
+  return hit?hit.r:null;
+}
+
+function updateStats(){
+  const total=lastRows.reduce((s,[,q])=>s+Number(q||0),0);
+  const matched=assignments.reduce((s,a)=>s+(a.destR!=null?1:0),0);
+  const sm=document.getElementById('statMatched');
+  const st=document.getElementById('statTotal');
+  if(sm) sm.textContent=`Совпадений: ${matched} / ${lastRows.length}`;
+  if(st) st.textContent=`Итого заказано единиц: ${total}`;
+}
+
+// фильтры + оверлей
+const picker=document.getElementById('picker');
+const pickerQuery=document.getElementById('pickerQuery');
+const pickerResults=document.getElementById('pickerResults');
+const pickerClose=document.getElementById('pickerClose');
+
+// 🔧 Фильтрация списка при наборе в поисковой строке
+pickerQuery.addEventListener('input', (e) => {
+  renderPickerResults(e.target.value);
+});
+
+// Enter — выбрать первый
+pickerQuery.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const first = pickerResults.querySelector('.resitem[data-r]');
+    if (first) { first.click(); e.preventDefault(); }
+  }
+});
+
+let activePickerSel=null;
+function openPicker(forSelect){ activePickerSel=forSelect; picker.style.display='flex'; pickerQuery.value=''; renderPickerResults(''); pickerQuery.focus(); }
+function closePicker(){ picker.style.display='none'; activePickerSel=null; }
+pickerClose.onclick=closePicker; picker.addEventListener('click',e=>{ if(e.target===picker) closePicker(); });
+window.addEventListener('keydown',e=>{ if(e.key==='Escape') closePicker(); });
+
+function renderPickerResults(q){
+  const terms=norm(q).split(' ').filter(Boolean);
+  const filtered = catalog.filter(c=> terms.every(t=>c.norm.includes(t)) );
+  pickerResults.innerHTML = filtered.map(c=>`<div class="resitem" data-r="${c.r}">${c.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`).join('') || '<div class="resitem">Ничего не найдено</div>';
+  for(const div of pickerResults.querySelectorAll('.resitem[data-r]')){
+    div.onclick=()=>{ if(activePickerSel){ activePickerSel.value=div.dataset.r; activePickerSel.dispatchEvent(new Event('change')); } closePicker(); };
+  }
+}
+
+const optionFilter=document.getElementById('optionFilter');
+optionFilter.addEventListener('input', ()=>{
+  const f=norm(optionFilter.value);
+  for(const m of rowMetas) rebuildOptions(m.sel, f);
+});
+
+function rebuildOptions(sel, filter){
+  const keep=sel.value;
+  sel.innerHTML = '<option value="">— выберите —</option>' + catalog.filter(c=>!filter||c.norm.includes(filter)).map(c=>`<option value="${c.r}">${c.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</option>`).join('');
+  if(keep && [...sel.options].some(o=>o.value===String(keep))) sel.value=String(keep);
+}
+
+function applyRowFlags(tr, unmatched, dup){ tr.classList.toggle('unmatched', !!unmatched); tr.classList.toggle('duplicate', !!dup); }
+function applyFilters(){
+  const hide = document.getElementById('hideMatched').checked, prob = document.getElementById('onlyProblems').checked;
+  for(const m of rowMetas){
+    const r = m.sel.value?parseInt(m.sel.value,10):null;
+    const unmatched = (r==null), dup = m.isDup;
+    let show = true;
+    if(hide && !unmatched) show=false;
+    if(prob && !(unmatched||dup)) show=false;
+    m.tr.style.display = show ? '' : 'none';
+  }
+}
+document.getElementById('hideMatched').addEventListener('change', applyFilters);
+document.getElementById('onlyProblems').addEventListener('change', applyFilters);
+
+// постройка таблицы
+function buildTable(rows){
+  const tbMap=document.getElementById('tbMap'); tbMap.innerHTML=''; assignments=[]; lastRows=rows; rowMetas=[];
+  const counts=new Map(); for(const [s] of rows){ const k=norm(s); counts.set(k,(counts.get(k)||0)+1); }
+
+  const mem = loadMemory();
+  const templateIdx = buildTemplateIndex(); // norm -> r
+
+  for(const [src,qty] of rows){
+    const tr=document.createElement('tr');
+    const wrap=document.createElement('div'); wrap.className='selectWrap';
+    const sel=document.createElement('select'); sel.innerHTML='';
+    const cover=document.createElement('button'); cover.type='button'; cover.className='selectCover'; cover.title='Поиск';
+    wrap.appendChild(sel); wrap.appendChild(cover);
+    tr.innerHTML=`<td class="warn"></td><td></td><td>${qty}</td>`;
+    tr.children[0].textContent=src;
+    tr.children[1].appendChild(wrap);
+    tbMap.appendChild(tr);
+    rebuildOptions(sel,'');
+
+    cover.addEventListener('click', ()=> openPicker(sel) );
+
+    const key=norm(src);
+    let preR=null;
+    const savedTemplNorm = mem.map[key];
+    if(savedTemplNorm){
+      if(savedTemplNorm.startsWith('#ROW:')){
+        const row = parseInt(savedTemplNorm.slice(5),10);
+        if(Number.isFinite(row)) preR=row;
+      }else{
+        const row = templateIdx.get(savedTemplNorm);
+        if(row) preR=row;
+      }
+    }else{
+      preR = autoMatchByIncludes(key);
+    }
+    if(preR) sel.value=String(preR);
+
+    const isDup=(counts.get(key)||0)>1;
+    function upd(){
+      const r = sel.value?parseInt(sel.value,10):null;
+      const idx=assignments.findIndex(a=>a.src===src);
+      if(idx>=0) assignments[idx]={src,qty,destR:r}; else assignments.push({src,qty,destR:r});
+      if(r!=null){
+        const chosen = catalog.find(c=>c.r===r);
+        if(chosen) rememberMatch(src, chosen.text);
+      }else{
+        forgetMatch(src);
+      }
+      applyRowFlags(tr, r==null, isDup); applyFilters(); updateStats();
+    }
+    sel.addEventListener('change',upd);
+    rowMetas.push({tr,sel,isDup});
+    applyRowFlags(tr, preR==null, isDup); upd();
+  }
+}
+
+// предпросмотр
 document.getElementById('preview').onclick = async ()=>{
   try{
     setInfo('');
@@ -349,10 +493,10 @@ document.getElementById('preview').onclick = async ()=>{
   }catch(e){ setInfo(e.message,true); }
 };
 
-// ------------------- скачивание Excel -------------------
+// скачивание Excel
 function safeFilename(s){ return s.replace(/[\\/:*?"<>|]+/g,' ').replace(/\s{2,}/g,' ').trim(); }
 function buildFilename(){ 
-  const city = citySel.value || (citySel.options[0]?.value||'EWL_Order');
+  const city = (document.getElementById('city').value) || (document.getElementById('city').options[0]?.value||'EWL_Order');
   const dt = document.getElementById('date').value;
   let ddmm = 'дата'; if(dt){ const [yyyy,mm,dd]=dt.split('-'); ddmm=`${dd}.${mm}.${yyyy}`; }
   return `${city} ${ddmm}.xlsx`;
@@ -364,7 +508,7 @@ document.getElementById('download').onclick = async ()=>{
     const wb = await XlsxPopulate.fromDataAsync(buf);
     const order=wb.sheet('Order'); const l1=wb.sheet('L1');
     // D2 — код + город
-    const city = citySel.value || (citySel.options[0]?.value||'');
+    const city = (document.getElementById('city').value) || (document.getElementById('city').options[0]?.value||'');
     let code=''; if(l1){ const end=l1.usedRange().endCell().rowNumber(); const nrm=s=>String(s??'').toLowerCase().trim();
       for(let r=2;r<=end;r++){ const b=l1.cell(r,2).value(), c=l1.cell(r,3).value(); if(nrm(c)===nrm(city)){ code=(typeof b==='number')?String(Math.trunc(b)):String(b??''); break; } } }
     const merged = (city==='Тольятти-5') ? '1369-Тольятти-5' : (code ? `${code} - ${city}` : city);
@@ -380,7 +524,9 @@ document.getElementById('download').onclick = async ()=>{
   }catch(e){ setInfo(e.message,true); }
 };
 
-// ------------------- поиск пиццерии -------------------
+// поиск пиццерии
+const citySearch=document.getElementById('citySearch');
+const citySel=document.getElementById('city');
 citySearch.addEventListener('input',()=>{
   const q=norm(citySearch.value);
   for(const opt of citySel.options){
@@ -431,4 +577,5 @@ document.getElementById('clearMap').onclick=async()=>{ if(confirm('Очисти�
 </script>
 </body>
 </html>
+
 
