@@ -78,6 +78,46 @@
   details.editor[open] > summary{
     list-style:disclosure-open;
   }
+
+/* --- фикс: редактор внизу, в одну колонку --- */
+.row{               
+  display:block !important;
+}
+
+#mapCard,
+.map-card,
+.right,
+#rightPane,
+.rightCol{
+  position:static !important;
+  top:auto !important;
+  width:100% !important;
+  float:none !important;
+  clear:both !important;
+  margin-top:16px !important;
+}
+
+#mapTable, .map-table, #tbMap{
+  max-height:none !important;
+  overflow:visible !important;
+}
+
+details.editor{
+  display:block !important;
+  width:100% !important;
+  grid-column:1 / -1 !important;
+  margin-top:10px !important;
+}
+details.editor>summary{
+  cursor:pointer;
+  list-style:disclosure-closed;
+}
+details.editor[open]>summary{
+  list-style:disclosure-open;
+}
+
+
+  
 </style>
 
 
