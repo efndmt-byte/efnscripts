@@ -115,20 +115,21 @@
       </div>
 
       <div class="inline-controls" style="margin-top:12px;gap:14px;align-items:flex-start;flex-wrap:wrap">
-        <label>Дата
-          <input type="date" id="date">
-        </label>
+  <label>Дата
+    <input type="date" id="date">
+  </label>
+</div>
 
-        <label style="flex:1 1 560px">Ресторан — поиск/выбор
-          <div class="combo" id="cityComboBox">
-            <input id="cityCombo" placeholder="Начните ввод…">
-            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
-              <path fill="currentColor" d="M7 10l5 5 5-5z"/>
-            </svg>
-            <div class="combo-list" id="cityList"></div>
-          </div>
-        </label>
-      </div>
+<label style="flex:1 1 560px;display:block;margin-top:12px">Ресторан
+  <div class="combo" id="cityComboBox">
+    <input id="cityCombo" placeholder="Начните ввод…">
+    <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M7 10l5 5 5-5z"/>
+    </svg>
+    <div class="combo-list" id="cityList"></div>
+  </div>
+</label>
+
 
       <label style="margin-top:14px">Текст заказа
         <textarea id="order" placeholder="Вставьте заказ сюда..."></textarea>
