@@ -56,6 +56,24 @@
   .selectWrap{position:relative}
   .selectWrap select{pointer-events:auto}
   .selectCover{position:absolute;inset:0;background:transparent;border:none;border-radius:12px;cursor:pointer}
+.row{
+  display:block;            /* вместо grid: всё в одну колонку */
+  grid-template-columns:none;
+  gap:0;
+}
+
+#mapCard, .map-card, .right, #rightPane, .rightCol{
+  position:static;
+  top:auto;
+  margin-top:16px;          /* чтобы был небольшой отступ сверху */
+}
+
+/* таблица редактора на всю ширину, без искусственной высоты */
+#mapTable, .map-table, #tbMap{
+  max-height:none;
+  overflow:visible;
+}
+
 </style>
 
 
