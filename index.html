@@ -1,103 +1,105 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>EWL Order — текстовая память соответствий</title>
-<link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'/>">
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx-populate/browser/xlsx-populate.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EWL Order — текстовая память соответствий</title>
 
-<style>
-  :root{--bg:#0b1020;--fg:#eaf0ff;--mut:#9fb2ff;--panel:#121a34;--border:#7aa2ff40;--accent:#1b2750}
-  *{box-sizing:border-box}
-  body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--fg);margin:0;padding:24px}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;max-width:1360px;margin:0 auto;padding:18px}
-  h1{margin:0 0 10px}
+  <!-- Фавиконки -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 
-  input,select,textarea,button{
-    width:100%;
-    border-radius:12px;
-    border:1px solid #7aa2ff55;
-    background:#0f1530;
-    color:var(--fg);
-    padding:10px;
-    margin-top:6px;
-  }
-  textarea{min-height:220px;white-space:pre;font-family:ui-monospace,Consolas,Menlo,monospace}
+  <!-- Скрипты -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-populate/browser/xlsx-populate.min.js"></script>
 
-  .btn{cursor:pointer;font-weight:700;background:var(--accent);width:auto;display:inline-block;margin-right:8px}
+  <style>
+    :root{--bg:#0b1020;--fg:#eaf0ff;--mut:#9fb2ff;--panel:#121a34;--border:#7aa2ff40;--accent:#1b2750}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--fg);margin:0;padding:24px}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;max-width:1360px;margin:0 auto;padding:18px}
+    h1{margin:0 0 10px}
 
-  table{border-collapse:collapse;width:100%;margin-top:12px}
-  th,td{border-bottom:1px solid #7aa2ff55;padding:8px;vertical-align:top}
-  th{color:var(--mut)}
+    input,select,textarea,button{
+      width:100%;
+      border-radius:12px;
+      border:1px solid #7aa2ff55;
+      background:#0f1530;
+      color:var(--fg);
+      padding:10px;
+      margin-top:6px;
+    }
+    textarea{min-height:220px;white-space:pre;font-family:ui-monospace,Consolas,Menlo,monospace}
 
-  tr.unmatched td{background:#51202a}
-  tr.duplicate td{background:#58461c}
-  tr.unmatched.duplicate td{background:#60313a}
+    .btn{cursor:pointer;font-weight:700;background:var(--accent);width:auto;display:inline-block;margin-right:8px}
 
-  .legend{display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap}
-  .chip{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid #7aa2ff55}
-  .chip.unm{background:#51202a}
-  .chip.dupl{background:#58461c}
+    table{border-collapse:collapse;width:100%;margin-top:12px}
+    th,td{border-bottom:1px solid #7aa2ff55;padding:8px;vertical-align:top}
+    th{color:var(--mut)}
 
-  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+    tr.unmatched td{background:#51202a}
+    tr.duplicate td{background:#58461c}
+    tr.unmatched.duplicate td{background:#60313a}
 
-  #info{min-height:20px}
-  .error{color:#ffa2a2}
-  .ok{color:#b5ffbf}
+    .legend{display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap}
+    .chip{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid #7aa2ff55}
+    .chip.unm{background:#51202a}
+    .chip.dupl{background:#58461c}
 
-  .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:50}
-  .modal>.box{background:#0f1530;border:1px solid #7aa2ff55;border-radius:14px;max-width:900px;width:90%;padding:12px}
-  .modal input{width:100%}
-  .results{max-height:420px;overflow:auto;margin-top:8px;border:1px solid #7aa2ff33;border-radius:10px}
-  .resitem{padding:8px 10px;border-bottom:1px solid #7aa2ff22;cursor:pointer}
-  .resitem:hover{background:#15204a}
-  .selectWrap{position:relative}
-  .selectWrap select{pointer-events:auto}
-  .selectCover{position:absolute;inset:0;background:transparent;border:none;border-radius:12px;cursor:pointer}
+    .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
 
-  /* компактные чекбоксы */
-  input[type="checkbox"]{
-    width:14px;height:14px;border-radius:4px;accent-color:#7aa2ff;vertical-align:middle
-  }
-  label.inline{display:inline-flex;align-items:center;gap:6px;margin:0}
+    #info{min-height:20px}
+    .error{color:#ffa2a2}
+    .ok{color:#b5ffbf}
 
-  /* редактор внизу — details */
-  details.editor{margin-top:10px}
-  details.editor > summary{cursor:pointer;color:var(--mut,#9fb2ff);list-style:disclosure-closed}
-  details.editor[open] > summary{list-style:disclosure-open}
+    .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:50}
+    .modal>.box{background:#0f1530;border:1px solid #7aa2ff55;border-radius:14px;max-width:900px;width:90%;padding:12px}
+    .modal input{width:100%}
+    .results{max-height:420px;overflow:auto;margin-top:8px;border:1px solid #7aa2ff33;border-radius:10px}
+    .resitem{padding:8px 10px;border-bottom:1px solid #7aa2ff22;cursor:pointer}
+    .resitem:hover{background:#15204a}
+    .selectWrap{position:relative}
+    .selectWrap select{pointer-events:auto}
+    .selectCover{position:absolute;inset:0;background:transparent;border:none;border-radius:12px;cursor:pointer}
 
-  /* --- фикс: редактор внизу, в одну колонку --- */
-  .row{display:block!important}
-  #mapCard,.map-card,.right,#rightPane,.rightCol{position:static!important;top:auto!important;width:100%!important;float:none!important;clear:both!important;margin-top:16px!important}
-  #mapTable,.map-table,#tbMap{max-height:none!important;overflow:visible!important}
-  details.editor{display:block!important;width:100%!important;grid-column:1/-1!important;margin-top:10px!important}
+    /* компактные чекбоксы */
+    input[type="checkbox"]{width:14px;height:14px;border-radius:4px;accent-color:#7aa2ff;vertical-align:middle}
+    label.inline{display:inline-flex;align-items:center;gap:6px;margin:0}
 
-  /* === Компактные ширины === */
-  #date{width:100%;max-width:260px}
+    /* редактор внизу — details */
+    details.editor{margin-top:10px}
+    details.editor > summary{cursor:pointer;color:var(--mut,#9fb2ff);list-style:disclosure-closed}
+    details.editor[open] > summary{list-style:disclosure-open}
 
-  /* Комбинированный контрол города */
-  .combo{position:relative;width:100%;max-width:560px}
-  .combo input{padding-right:34px}
-  .combo .arrow{
-    position:absolute;right:10px;top:50%;transform:translateY(-50%);
-    pointer-events:none;opacity:.8
-  }
-  .combo-list{
-    position:absolute;left:0;right:0;top:calc(100% + 6px);
-    background:#0f1530;border:1px solid #7aa2ff55;border-radius:12px;
-    max-height:320px;overflow:auto;display:none;z-index:20
-  }
-  .combo-list.open{display:block}
-  .combo-item{padding:8px 10px;border-bottom:1px solid #7aa2ff22;cursor:pointer}
-  .combo-item:hover{background:#15204a}
+    /* --- фикс: редактор внизу, в одну колонку --- */
+    .row{display:block!important}
+    #mapCard,.map-card,.right,#rightPane,.rightCol{position:static!important;top:auto!important;width:100%!important;float:none!important;clear:both!important;margin-top:16px!important}
+    #mapTable,.map-table,#tbMap{max-height:none!important;overflow:visible!important}
+    details.editor{display:block!important;width:100%!important;grid-column:1/-1!important;margin-top:10px!important}
 
-  @media (max-width:720px){
-    #date,.combo{max-width:100%}
-  }
-</style>
+    /* === Компактные ширины === */
+    #date{width:100%;max-width:260px}
+
+    /* Комбинированный контрол города */
+    .combo{position:relative;width:100%;max-width:560px}
+    .combo input{padding-right:34px}
+    .combo .arrow{position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.8}
+    .combo-list{
+      position:absolute;left:0;right:0;top:calc(100% + 6px);
+      background:#0f1530;border:1px solid #7aa2ff55;border-radius:12px;
+      max-height:320px;overflow:auto;display:none;z-index:20
+    }
+    .combo-list.open{display:block}
+    .combo-item{padding:8px 10px;border-bottom:1px solid #7aa2ff22;cursor:pointer}
+    .combo-item:hover{background:#15204a}
+
+    @media (max-width:720px){
+      #date,.combo{max-width:100%}
+    }
+  </style>
 </head>
+
 
 <body>
   <div class="card">
