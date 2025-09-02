@@ -24,6 +24,20 @@
   .chip{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid #7aa2ff55}
   .chip.unm{background:#51202a} .chip.dupl{background:#58461c}
   .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+
+  input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px; /* лёгкое скругление */
+  accent-color: #7aa2ff; /* цвет галочки и фона чекбокса */
+}
+
+  label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px; /* расстояние между квадратиком и текстом */
+}
+  
   #info{min-height:20px} .error{color:#ffa2a2} .ok{color:#b5ffbf}
   .modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:50}
   .modal>.box{background:#0f1530;border:1px solid #7aa2ff55;border-radius:14px;max-width:900px;width:90%;padding:12px}
