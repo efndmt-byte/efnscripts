@@ -1,20 +1,14 @@
+
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EWL Order </title>
-
-  <!-- Фавиконки -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EWL Order + KPI</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-
-  <!-- Скрипты -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx-populate/browser/xlsx-populate.min.js"></script>
-
-  <style>
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<style>
     :root{--bg:#0b1020;--fg:#eaf0ff;--mut:#9fb2ff;--panel:#121a34;--border:#7aa2ff40;--accent:#1b2750}
     *{box-sizing:border-box}
     body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--fg);margin:0;padding:24px}
@@ -98,10 +92,30 @@
       #date,.combo{max-width:100%}
     }
   </style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-populate/browser/xlsx-populate.min.js"></script>
+  <style>
+    /* Tabs navbar */
+    .navbar{display:flex;gap:12px;align-items:center;margin:12px 0 16px 0}
+    .navbar .tab{appearance:none;border:none;border-radius:999px;padding:10px 16px;font-weight:800;cursor:pointer;
+      background:#1b2750;color:#eaf0ff;border:1px solid #7aa2ff55}
+    .navbar .tab:hover{background:#2a3a70}
+    .navbar .tab.active{background:#3153d3}
+    .navbar a{ text-decoration:none }
+    /* Sections */
+    #ewlSection, #kpiSection{}
+    #kpiFrame{width: 100%; min-height: 1100px; border: none; border-radius: 12px; background: #0b1020;}
+  </style>
 </head>
-
-
 <body>
+  <div class="navbar">
+    <button class="tab active" id="tabEWL" type="button">EWL Order</button>
+    <button class="tab" id="tabKPI" type="button">KPI</button>
+  </div>
+
+  <!-- EWL Order original content -->
+  <div id="ewlSection">
+
   <div class="card">
     <h1>EWL Order</h1>
 
@@ -549,6 +563,202 @@ document.getElementById('clearOrder').onclick = () => {
 
   
 </script>
+
+  </div>
+
+  <!-- KPI embedded as iframe to avoid ID/script conflicts -->
+  <div id="kpiSection" style="display:none">
+    <iframe id="kpiFrame" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;!-- saved from url=(0070)file:///C:/Users/imfideo/Downloads/kpi_builder_target_final%20(1).html --&gt;
+&lt;html lang=&quot;ru&quot;&gt;&lt;head&gt;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;
+  
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+  &lt;title&gt;KPI — Потери и избыток&lt;/title&gt;
+  &lt;script src=&quot;./KPI — Потери и избыток_files/xlsx.full.min.js.Без названия&quot;&gt;&lt;/script&gt;
+  &lt;style&gt;
+    :root { color-scheme: dark; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, &quot;Noto Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif; background:#0b1020; color:#eaf0ff; margin:0; padding:24px; }
+    .wrap { max-width: 920px; margin: 0 auto; }
+    .card { background:#121a34; border:1px solid rgba(122,162,255,.25); border-radius:14px; padding:18px; }
+    h1 { margin:0 0 8px; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    input[type=file] { display:block; margin: 8px 0; }
+    .btn { background:#1b2750; color:white; border:none; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:600; }
+    .btn:hover { background:#2a3a70; }
+    .muted { color:#9fb2ff; font-size:14px; }
+    table { border-collapse: collapse; width:100%; margin-top:12px; }
+    th,td { border-bottom:1px solid #7aa2ff55; padding:8px; font-size:14px; text-align:left; }
+    #status { margin-top:8px; min-height:20px; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;wrap&quot;&gt;
+    &lt;div class=&quot;card&quot;&gt;
+      &lt;h1&gt;KPI — Потери и избыток&lt;/h1&gt;
+      &lt;p class=&quot;muted&quot;&gt;&lt;/p&gt;
+      &lt;input type=&quot;file&quot; id=&quot;file&quot; multiple=&quot;&quot; accept=&quot;.xlsx&quot;&gt;
+      &lt;div class=&quot;row&quot;&gt;
+        &lt;button id=&quot;preview&quot; type=&quot;button&quot; class=&quot;btn&quot;&gt;Предпросмотр&lt;/button&gt;
+        &lt;button id=&quot;process&quot; type=&quot;button&quot; class=&quot;btn&quot;&gt;Скачать KPI.xlsx&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;count&quot; class=&quot;muted&quot;&gt;&lt;/div&gt;
+      &lt;div id=&quot;status&quot; class=&quot;muted&quot;&gt;Готово. Выберите файлы и нажмите кнопку.&lt;/div&gt;
+      &lt;div id=&quot;previewBox&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+  (function(){
+    &quot;use strict&quot;;
+    const METRIC_MAP = new Map([
+      [&#x27;Итого потери&#x27;, &#x27;Потери, руб.&#x27;],
+      [&#x27;Неучтённые потери&#x27;, &#x27;Неучтенные потери, руб.&#x27;],
+      [&#x27;Списания&#x27;, &#x27;Списания, руб.&#x27;],
+      [&#x27;Итого избыток&#x27;, &#x27;Избыток, руб.&#x27;],
+    ]);
+
+    let picked = [];
+    const fileInput = document.getElementById(&#x27;file&#x27;);
+    const previewBtn = document.getElementById(&#x27;preview&#x27;);
+    const processBtn = document.getElementById(&#x27;process&#x27;);
+    const previewBox = document.getElementById(&#x27;previewBox&#x27;);
+    const countEl = document.getElementById(&#x27;count&#x27;);
+    const statusEl = document.getElementById(&#x27;status&#x27;);
+
+    function log(msg){ if(statusEl) statusEl.textContent = msg; console.log(&#x27;[KPI]&#x27;, msg); }
+    function setPicked(files){
+      picked = Array.from(files || []);
+      countEl.textContent = picked.length ? `Выбрано файлов: ${picked.length}` : &#x27;&#x27;;
+    }
+    fileInput.addEventListener(&#x27;change&#x27;, (e)=&gt; setPicked(e.target.files));
+
+    function readFileArrayBuffer(file){
+      return new Promise((resolve, reject)=&gt;{
+        const r = new FileReader();
+        r.onload = ()=&gt; resolve(r.result);
+        r.onerror = ()=&gt; reject(r.error || new Error(&#x27;read failed&#x27;));
+        r.readAsArrayBuffer(file);
+      });
+    }
+
+    function to2(v){
+      if (v === &#x27;&#x27; || v === null || v === undefined) return &#x27;&#x27;;
+      const num = parseFloat(String(v).toString().replace(&#x27;,&#x27;, &#x27;.&#x27;));
+      if (isNaN(num)) return v;
+      return num.toFixed(2).replace(&#x27;.&#x27;, &#x27;,&#x27;);
+    }
+
+    function extractBlock(wb){
+      const sh = wb.Sheets[wb.SheetNames[0]];
+      const aoa = XLSX.utils.sheet_to_json(sh, { header: 1, defval: &#x27;&#x27; });
+      let pizzeria = &#x27;&#x27;;
+      const out = [];
+
+      for (let i=0; i&lt;aoa.length; i++){
+        const row = aoa[i];
+        const a = row[0];
+        const b = row[1];
+        const c = row[2];
+        if (a === &#x27;Пиццерия&#x27;){ pizzeria = String(b || &#x27;&#x27;).trim(); }
+        if (METRIC_MAP.has(a)){
+          const label = METRIC_MAP.get(a);
+          out.push([label, to2(b)]);
+        }
+      }
+      if (!out.length &amp;&amp; pizzeria){
+        // ничего не нашли — вернем пустой блок, чтобы было видно пиццерию
+        return [[&#x27;Пиццерия&#x27;, pizzeria, &#x27;&#x27;]];
+      }
+      // Соберем окончательный блок: шапка пиццерии + строки
+      const final = [[&#x27;Пиццерия&#x27;, pizzeria]];
+      for (const r of out) final.push(r);
+      // убран разделитель
+      return final;
+    }
+
+    async function collectAll(){
+      const all = [];
+      for (const f of picked){
+        const ab = await readFileArrayBuffer(f);
+        const wb = XLSX.read(ab, { type:&#x27;array&#x27; });
+        all.push(...extractBlock(wb));
+      }
+      return all;
+    }
+
+    function renderPreview(rows){
+      if (!rows.length){ previewBox.innerHTML = &#x27;&lt;p class=&quot;muted&quot;&gt;Нет данных.&lt;/p&gt;&#x27;; return; }
+      let html = &#x27;&lt;table&gt;&lt;tr&gt;&lt;th&gt;Показатель&lt;/th&gt;&lt;th&gt;Сумма&lt;/th&gt;&lt;/tr&gt;&#x27;;
+      for (const r of rows){ html += &#x27;&lt;tr&gt;&#x27; + r.map(v=&gt;`&lt;td&gt;${v??&#x27;&#x27;}&lt;/td&gt;`).join(&#x27;&#x27;) + &#x27;&lt;/tr&gt;&#x27;; }
+      html += &#x27;&lt;/table&gt;&#x27;;
+      previewBox.innerHTML = html;
+    }
+
+    previewBtn.addEventListener(&#x27;click&#x27;, async (ev)=&gt;{
+      ev.preventDefault();
+      log(&#x27;Нажат Предпросмотр&#x27;);
+      try {
+        const rows = await collectAll();
+        renderPreview(rows.slice(0, 120));
+        log(&#x27;Предпросмотр готов&#x27;);
+      } catch (e){ console.error(e); log(&#x27;Ошибка предпросмотра: &#x27;+e.message); alert(&#x27;Ошибка предпросмотра: &#x27;+e.message); }
+    });
+
+    processBtn.addEventListener(&#x27;click&#x27;, async (ev)=&gt;{
+      ev.preventDefault();
+      log(&#x27;Нажато Скачать&#x27;);
+      try {
+        const rows = await collectAll();
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, &#x27;Sheet&#x27;);
+        XLSX.writeFile(wb, &#x27;KPI.xlsx&#x27;);
+        log(&#x27;Файл сохранён&#x27;);
+      } catch (e){ console.error(e); log(&#x27;Ошибка сохранения: &#x27;+e.message); alert(&#x27;Ошибка сохранения: &#x27;+e.message); }
+    });
+
+    log(&#x27;Готово. Выберите файлы и нажмите кнопку.&#x27;);
+  })();
+  &lt;/script&gt;
+
+
+&lt;/body&gt;&lt;/html&gt;"></iframe>
+  </div>
+
+  <script>
+    (function(){
+      const tabE = document.getElementById('tabEWL');
+      const tabK = document.getElementById('tabKPI');
+      const secE = document.getElementById('ewlSection');
+      const secK = document.getElementById('kpiSection');
+      function activate(which){
+        if(which==='ewl'){ 
+          secE.style.display='block'; secK.style.display='none';
+          tabE.classList.add('active'); tabK.classList.remove('active');
+        } else {
+          secE.style.display='none'; secK.style.display='block';
+          tabE.classList.remove('active'); tabK.classList.add('active');
+        }
+      }
+      tabE.addEventListener('click', ()=>activate('ewl'));
+      tabK.addEventListener('click', ()=>activate('kpi'));
+
+      // Auto-resize iframe to its content height (same-origin because srcdoc)
+      const frame = document.getElementById('kpiFrame');
+      function resizeFrame(){
+        try {
+          const doc = frame.contentDocument || frame.contentWindow.document;
+          if(!doc) return;
+          const h = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight);
+          if(h) frame.style.height = (h + 20) + 'px';
+        } catch(e) { /* ignore */ }
+      }
+      frame.addEventListener('load', resizeFrame);
+      // re-check a few times after load in case content shifts
+      setTimeout(resizeFrame, 400);
+      setTimeout(resizeFrame, 1200);
+      setTimeout(resizeFrame, 2500);
+    })();
+  </script>
 </body>
 </html>
-
