@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EWL Order</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-<style>
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <style>
     :root{--bg:#0b1020;--fg:#eaf0ff;--mut:#9fb2ff;--panel:#121a34;--border:#7aa2ff40;--accent:#1b2750}
     *{box-sizing:border-box}
     body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--fg);margin:0;padding:24px}
@@ -91,8 +91,14 @@
       #date,.combo{max-width:100%}
     }
   </style>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx-populate/browser/xlsx-populate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-populate/browser/xlsx-populate.min.js"></script>
+
+  <!-- flatpickr: фиксированный формат даты дд.мм.гггг -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+
   <style>
     /* Tabs navbar */
     .navbar{display:flex;gap:12px;align-items:center;margin:12px 0 16px 0}
@@ -130,20 +136,21 @@
       </div>
 
       <div class="inline-controls" style="margin-top:12px;gap:14px;align-items:flex-start;flex-wrap:wrap">
-  <label>Дата
-    <input type="date" id="date">
-  </label>
-</div>
+        <label>Дата
+          <!-- Было: <input type="date" id="date"> -->
+          <input type="text" id="date" placeholder="дд.мм.гггг" inputmode="numeric" autocomplete="off">
+        </label>
+      </div>
 
-<label style="flex:1 1 560px;display:block;margin-top:12px">Ресторан
-  <div class="combo" id="cityComboBox">
-    <input id="cityCombo" placeholder="Начните ввод…">
-    <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
-      <path fill="currentColor" d="M7 10l5 5 5-5z"/>
-    </svg>
-    <div class="combo-list" id="cityList"></div>
-  </div>
-</label>
+      <label style="flex:1 1 560px;display:block;margin-top:12px">Ресторан
+        <div class="combo" id="cityComboBox">
+          <input id="cityCombo" placeholder="Начните ввод…">
+          <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M7 10l5 5 5-5z"/>
+          </svg>
+          <div class="combo-list" id="cityList"></div>
+        </div>
+      </label>
 
 
       <label style="margin-top:14px">Текст заказа
@@ -151,8 +158,6 @@
       </label>
       <button class="btn" id="clearOrder" style="margin-top:6px">Очистить текст</button>
 
-
-      
 
       <div class="toolbar">
         <button class="btn" id="preview">Предпросмотр</button>
@@ -488,8 +493,13 @@ document.getElementById('preview').onclick=async()=>{
 function safeFilename(s){return s.replace(/[\\/:*?"<>|]+/g,' ').replace(/\s{2,}/g,' ').trim();}
 function buildFilename(){
   const city = citySelected || (citiesArray[0]?.name || 'EWL_Order');
-  const dt=document.getElementById('date').value;
-  let ddmm='дата'; if(dt){const [yyyy,mm,dd]=dt.split('-'); ddmm=`${dd}.${mm}.${yyyy}`;}
+  const dt = document.getElementById('date').value?.trim();
+  let ddmm='дата';
+  const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(dt || '');
+  if (m) {
+    const [, dd, mm, yyyy] = m;
+    ddmm = `${dd}.${mm}.${yyyy}`;
+  }
   return `${city} ${ddmm}.xlsx`;
 }
 document.getElementById('download').onclick=async()=>{
@@ -512,8 +522,12 @@ document.getElementById('download').onclick=async()=>{
     const merged=(city==='Тольятти-5')?'1369-Тольятти-5':(code?`${code} - ${city}`:city);
     order.cell('D2').value(merged);
 
-    const dt=document.getElementById('date').value;
-    if(dt){ const [yy,mm,dd]=dt.split('-'); order.cell('D8').value(`${dd}.${mm}.${yy}`); }
+    const dt = document.getElementById('date').value?.trim();
+    const md = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(dt || '');
+    if (md) {
+      const [, dd, mm, yyyy] = md;
+      order.cell('D8').value(`${dd}.${mm}.${yyyy}`);
+    }
 
     const endRow=order.usedRange().endCell().rowNumber();
     for(let r=14;r<=endRow;r++) order.cell(r,6).value(null);
@@ -558,9 +572,6 @@ document.getElementById('clearMap').onclick=async()=>{ if(confirm('Очисти�
 document.getElementById('clearOrder').onclick = () => {
   document.getElementById('order').value = '';
 };
-
-
-  
 </script>
 
   </div>
@@ -759,6 +770,20 @@ document.getElementById('clearOrder').onclick = () => {
       setTimeout(resizeFrame, 2500);
     })();
   </script>
+
+  <!-- Инициализация flatpickr после того, как DOM уже отрисован -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.flatpickr) {
+        flatpickr("#date", {
+          dateFormat: "d.m.Y",
+          allowInput: true,
+          locale: flatpickr.l10ns.ru
+        });
+      }
+    });
+  </script>
 </body>
 </html>
+
 
