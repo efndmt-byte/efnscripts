@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Вычисление (a - b) + b/1000</title>
+  <style>
+    :root{--bg:#0b1020;--panel:#111936;--text:#e8eefc;--muted:#9fb1df;--accent:#3d5afe;--danger:#ff5c7a;--radius:14px}
+    body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    .wrap{max-width:560px;margin:6vh auto;padding:24px;background:var(--panel);border-radius:var(--radius)}
+    h1{font-size:20px;margin:0 0 16px}
+    label{display:block;margin:10px 0 6px;color:var(--muted)}
+    input[type="text"]{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #22305f;background:#0c142b;color:var(--text);outline:none}
+    input[type="text"]:focus{border-color:var(--accent)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+    button{cursor:pointer;padding:10px 14px;border:0;border-radius:10px;background:var(--accent);color:white}
+    button.secondary{background:#1f2b52}
+    .out{margin-top:14px;padding:14px;border-radius:10px;background:#0c142b}
+    .err{color:var(--danger);margin-top:8px}
+    small{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>(a - b) + b/1000</h1>
+
+    <div class="row">
+      <div>
+        <label for="a">a</label>
+        <input id="a" type="text" inputmode="decimal" placeholder="введите a" />
+      </div>
+      <div>
+        <label for="b">b</label>
+        <input id="b" type="text" inputmode="decimal" placeholder="введите b" />
+      </div>
+    </div>
+
+    <div class="btns">
+      <button id="calc">Рассчитать</button>
+      <button id="clear" class="secondary">Сброс</button>
+    </div>
+
+    <div class="out" id="out">
+      <div><strong>Результат:</strong> <span id="res">—</span></div>
+      <small id="raw">Введите значения и нажмите «Рассчитать».</small>
+      <div class="err" id="err" hidden></div>
+    </div>
+  </div>
+
+  <script>
+    // Парсим число: поддерживаем и запятую, и точку как десятичный разделитель
+    function parseNum(s) {
+      if (typeof s !== 'string') s = String(s ?? '');
+      s = s.trim().replace(/\s+/g, '');
+      if (s.includes(',') && s.includes('.')) {
+        const lastComma = s.lastIndexOf(',');
+        const lastDot = s.lastIndexOf('.');
+        const decPos = Math.max(lastComma, lastDot);
+        const intPart = s.slice(0, decPos).replace(/[.,]/g, '');
+        const decPart = s.slice(decPos + 1);
+        s = intPart + '.' + decPart;
+      } else {
+        s = s.replace(',', '.'); // приводим к точке
+      }
+      const n = Number(s);
+      return Number.isFinite(n) ? n : NaN;
+    }
+
+    // Форматирование c точкой: если целое — без дробной части, иначе 2 знака
+    function formatNum(n) {
+      if (!Number.isFinite(n)) return '—';
+      const isInt = Math.abs(n - Math.round(n)) < 1e-9;
+      return isInt ? String(Math.round(n)) : n.toFixed(2);
+    }
+
+    function calc() {
+      const aVal = document.getElementById('a').value;
+      const bVal = document.getElementById('b').value;
+      const a = parseNum(aVal);
+      const b = parseNum(bVal);
+      const errBox = document.getElementById('err');
+      const resBox = document.getElementById('res');
+      const raw = document.getElementById('raw');
+
+      errBox.hidden = true;
+      errBox.textContent = '';
+
+      if (!Number.isFinite(a) || !Number.isFinite(b)) {
+        errBox.hidden = false;
+        errBox.textContent = 'Проверьте ввод: оба поля должны быть числами.';
+        resBox.textContent = '—';
+        raw.textContent = '';
+        return;
+      }
+
+      const result = (a - b) + b / 1000;
+
+      resBox.textContent = formatNum(result);
+      raw.textContent = `Формула: (${formatNum(a)} - ${formatNum(b)}) + ${formatNum(b)}/1000 = ${formatNum(a - b)} + ${formatNum(b/1000)} = ${formatNum(result)}`;
+    }
+
+    document.getElementById('calc').addEventListener('click', calc);
+    document.getElementById('clear').addEventListener('click', () => {
+      document.getElementById('a').value = '';
+      document.getElementById('b').value = '';
+      document.getElementById('res').textContent = '—';
+      document.getElementById('raw').textContent = 'Введите значения и нажмите «Рассчитать».';
+      const err = document.getElementById('err');
+      err.hidden = true; err.textContent = '';
+    });
+  </script>
+</body>
+</html>
