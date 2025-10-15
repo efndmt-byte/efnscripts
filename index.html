@@ -110,12 +110,14 @@
     /* Sections */
     #ewlSection, #kpiSection{}
     #kpiFrame{width: 100%; min-height: 1100px; border: none; border-radius: 12px; background: #0b1020;}
+    #calcFrame{width: 100%; min-height: 500px; border: none; border-radius: 12px; background: #0b1020;}
   </style>
 </head>
 <body>
   <div class="navbar">
     <button class="tab active" id="tabEWL" type="button">EWL Order</button>
     <button class="tab" id="tabKPI" type="button">KPI</button>
+    <button class="tab" id="tabCalc" type="button">Вычисление</button>
   </div>
 
   <!-- EWL Order original content -->
@@ -735,23 +737,38 @@ document.getElementById('clearOrder').onclick = () => {
 &lt;/body&gt;&lt;/html&gt;"></iframe>
   </div>
 
+  <!-- CALC embedded as iframe -->
+  <div id="calcSection" style="display:none">
+    <iframe id="calcFrame" src="calc_ab.html"></iframe>
+  </div>
+
   <script>
     (function(){
       const tabE = document.getElementById('tabEWL');
       const tabK = document.getElementById('tabKPI');
+      const tabC = document.getElementById('tabCalc');
       const secE = document.getElementById('ewlSection');
       const secK = document.getElementById('kpiSection');
+      const secC = document.getElementById('calcSection');
       function activate(which){
-        if(which==='ewl'){ 
-          secE.style.display='block'; secK.style.display='none';
-          tabE.classList.add('active'); tabK.classList.remove('active');
+        // hide all
+        secE.style.display = 'none';
+        secK.style.display = 'none';
+        secC.style.display = 'none';
+        tabE.classList.remove('active');
+        tabK.classList.remove('active');
+        tabC.classList.remove('active');
+        if(which==='ewl'){
+          secE.style.display='block'; tabE.classList.add('active');
+        } else if(which==='kpi'){
+          secK.style.display='block'; tabK.classList.add('active');
         } else {
-          secE.style.display='none'; secK.style.display='block';
-          tabE.classList.remove('active'); tabK.classList.add('active');
+          secC.style.display='block'; tabC.classList.add('active');
         }
       }
       tabE.addEventListener('click', ()=>activate('ewl'));
       tabK.addEventListener('click', ()=>activate('kpi'));
+      tabC.addEventListener('click', ()=>activate('calc'));
 
       // Auto-resize iframe to its content height (same-origin because srcdoc)
       const frame = document.getElementById('kpiFrame');
@@ -768,6 +785,14 @@ document.getElementById('clearOrder').onclick = () => {
       setTimeout(resizeFrame, 400);
       setTimeout(resizeFrame, 1200);
       setTimeout(resizeFrame, 2500);
+
+      // Resize calc iframe similarly
+      const cframe = document.getElementById('calcFrame');
+      function resizeCalc(){ try{ const d=cframe.contentDocument||cframe.contentWindow.document; if(!d) return; const h=Math.max(d.body.scrollHeight,d.documentElement.scrollHeight); if(h) cframe.style.height=(h+20)+'px'; }catch(e){} }
+      cframe.addEventListener('load', resizeCalc);
+      setTimeout(resizeCalc, 300);
+      setTimeout(resizeCalc, 1000);
+      setTimeout(resizeCalc, 2200);
     })();
   </script>
 
