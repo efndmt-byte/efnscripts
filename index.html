@@ -8,9 +8,9 @@
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <style>
-    :root{--bg:#0b1020;--fg:#eaf0ff;--mut:#9fb2ff;--panel:#121a34;--border:#7aa2ff40;--accent:#1b2750}
+    :root{--bg:#01020a;--fg:#eaf0ff;--mut:#9fb2ff;--panel:rgba(15,23,42,.80);--border:rgba(148,163,184,.22);--accent:#1b2750}
     *{box-sizing:border-box}
-    body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--fg);margin:0;padding:24px}
+    body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(1200px 420px at 50% 0%, rgba(255,226,163,.06), transparent 62%),radial-gradient(900px 360px at 80% 10%, rgba(255,214,138,.04), transparent 60%),radial-gradient(900px 520px at 20% 0%, rgba(120,170,255,.04), transparent 60%),linear-gradient(180deg,#01020a 0%,#020412 35%,#03061a 100%);color:var(--fg);margin:0;padding:24px}}
     .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;max-width:1360px;margin:0 auto;padding:18px}
     h1{margin:0 0 10px}
 
@@ -90,7 +90,139 @@
     @media (max-width:720px){
       #date,.combo{max-width:100%}
     }
-  </style>
+  
+/* ===================== New Year Garland (photoreal, warm white) ===================== */
+@keyframes ny-fall{to{transform: translateY(120vh);}}
+
+.ny-stage{
+  position:relative;
+  max-width: 1500px;
+  margin: 0 auto 10px;
+  height: 150px;
+  z-index:2;
+}
+.ny-spill{
+  position:absolute;
+  left:-80px; right:-80px;
+  top:0px; height:170px;
+  background:
+    radial-gradient(900px 140px at 50% 55%, rgba(255,235,190,.18), transparent 68%),
+    radial-gradient(760px 120px at 50% 55%, rgba(255,210,140,.09), transparent 68%);
+  filter: blur(10px);
+  border-radius: 999px;
+  opacity: .95;
+}
+.ny-wireSvg{position:absolute; inset:0; pointer-events:none; z-index:1;}
+.ny-wireGlow{fill:none; stroke: rgba(255,240,210,.10); stroke-width:7.5; stroke-linecap:round; filter: blur(2px);}
+.ny-wireBase{fill:none; stroke: rgba(0,0,0,.55); stroke-width:3.6; stroke-linecap:round; filter: drop-shadow(0 10px 18px rgba(0,0,0,.55));}
+.ny-wireHighlight{fill:none; stroke: rgba(255,255,255,.18); stroke-width:1.4; stroke-linecap:round; opacity:.9;}
+
+.ny-bulbs{position:absolute; inset:0; z-index:2;}
+.ny-bulbWrap{
+  position:absolute;
+  width:28px; height:44px;
+  transform-origin: 50% 6px;
+  will-change: transform;
+}
+.ny-drop{
+  position:absolute;
+  left:50%;
+  top:0px;
+  width:2px;
+  height:8px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.04));
+  border-radius: 999px;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,.35));
+  opacity:.45;
+}
+.ny-cap{
+  position:absolute;
+  left:50%;
+  top:8px;
+  width:8px; height:5px;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background: rgba(210,210,210,.28);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 10px 16px rgba(0,0,0,.25);
+}
+.ny-bulb{
+  position:absolute;
+  left:50%;
+  top:14px;
+  width:12px;
+  height:12px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%,
+    rgba(255,247,233,1) 0%,
+    rgba(255,236,198,1) 35%,
+    rgba(255,214,155,1) 78%,
+    rgba(255,192,120,.95) 100%);
+  box-shadow:
+    0 0 10px rgba(255,230,170,.45),
+    0 0 22px rgba(255,220,150,.28),
+    0 0 46px rgba(255,210,140,.16);
+  border: 1px solid rgba(255,255,255,.35);
+}
+.ny-bulb::before{
+  content:"";
+  position:absolute;
+  left:2px; top:2px;
+  width:4px; height:4px;
+  border-radius:999px;
+  background: rgba(255,255,255,.68);
+  filter: blur(.2px);
+  opacity:.85;
+}
+.ny-bulb::after{
+  content:"";
+  position:absolute;
+  left:50%; top:50%;
+  width:52px; height:52px;
+  transform: translate(-50%,-50%);
+  border-radius:999px;
+  background: radial-gradient(circle,
+    rgba(255,235,190,.18) 0%,
+    rgba(255,220,150,.12) 30%,
+    rgba(255,210,140,.06) 52%,
+    rgba(255,210,140,0) 72%);
+  filter: blur(2px);
+  opacity:.9;
+  pointer-events:none;
+}
+@keyframes ny-flicker{
+  0%,100%{ filter: brightness(.85); }
+  50%{ filter: brightness(1.12); }
+}
+@keyframes ny-sway{
+  0%,100%{ transform: rotate(calc(-1 * var(--ny-sway))) translateY(0px); }
+  50%{ transform: rotate(var(--ny-sway)) translateY(1.2px); }
+}
+
+
+/* ===== FIX navbar placement (tabs on the right) ===== */
+.navbar{
+  position: fixed !important;
+  top: 28px !important;
+  right: 28px !important;
+  left: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  align-items: flex-end !important;
+  z-index: 10000 !important;
+  pointer-events: auto !important;
+}
+.navbar .tab{
+  min-width: 240px !important;
+}
+
+/* ===== Hide visual scrollbars (keep scrolling) ===== */
+*{scrollbar-width:none;}
+*::-webkit-scrollbar{width:0;height:0;}
+</style>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx-populate/browser/xlsx-populate.min.js"></script>
 
@@ -150,15 +282,482 @@
         margin-right: 0;
       }
     }
-  </style>
+  
+/* ================== FORCE near-black night theme (override) ================== */
+html, body{
+  background: radial-gradient(1200px 420px at 50% 0%, rgba(255,226,163,.06), transparent 62%),
+              radial-gradient(900px 360px at 80% 10%, rgba(255,214,138,.04), transparent 60%),
+              radial-gradient(900px 520px at 20% 0%, rgba(120,170,255,.04), transparent 60%),
+              linear-gradient(180deg, #01020a 0%, #020412 40%, #03061a 100%) !important;
+  color: #eaf2ff;
+}
+
+/* If there is a main background wrapper, keep it transparent so body shows through */
+body > .container,
+body > .app,
+body > .page,
+#app,
+#root,
+.main,
+.wrapper{
+  background: transparent !important;
+}
+
+/* Primary panel/card surfaces */
+.container, .card, .panel, .box, .content, .main-content, .left-panel{
+  background: rgba(15,23,42,.82) !important;
+  border-color: rgba(148,163,184,.22) !important;
+  color:#eaf2ff !important;
+}
+
+/* Inputs */
+input, textarea, select{
+  background: rgba(7,11,20,.78) !important;
+  color:#eaf2ff !important;
+  border-color: rgba(148,163,184,.22) !important;
+}
+
+/* Tabs/buttons */
+button, .btn, .tab, .nav-btn{
+  color:#eaf2ff !important;
+}
+
+/* Reduce any legacy light theme body backgrounds */
+.light, .theme-light{
+  background: transparent !important;
+}
+
+
+/* ===== Night near-black background ===== */
+html, body{
+  background:
+    radial-gradient(1200px 420px at 50% 0%, rgba(255,226,163,.06), transparent 62%),
+    radial-gradient(900px 360px at 80% 10%, rgba(255,214,138,.04), transparent 60%),
+    radial-gradient(900px 520px at 20% 0%, rgba(120,170,255,.04), transparent 60%),
+    linear-gradient(180deg, #01020a 0%, #020412 40%, #03061a 100%) !important;
+  color:#eaf2ff;
+}
+
+/* Frosted buttons */
+button, .btn, .tab{
+  background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.04)) !important;
+  border: 1px solid rgba(255,255,255,.28) !important;
+  color:#f1f5ff !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 10px 28px rgba(0,0,0,.55) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+button:hover, .btn:hover, .tab:hover{
+  background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.08)) !important;
+}
+.tab.active{
+  border-color: rgba(255,220,160,.65) !important;
+  box-shadow: 0 0 24px rgba(255,200,140,.35), 0 12px 28px rgba(0,0,0,.6) !important;
+}
+
+
+
+/* ================== KPI THEME ALIGNMENT ================== */
+#kpiSection, #kpiTab, .kpi-section, .kpiTab, .kpi-page, .kpi-root {
+  background: transparent !important;
+}
+
+#kpiSection .container, #kpiSection .card, #kpiSection .panel, #kpiSection .kpi-card,
+.kpi-section .container, .kpi-section .card, .kpi-section .panel, .kpi-card {
+  background: rgba(15,23,42,.82) !important;
+  border: 1px solid rgba(148,163,184,.22) !important;
+  color: #eaf2ff !important;
+  box-shadow: 0 22px 60px rgba(0,0,0,.55) !important;
+  border-radius: 18px !important;
+}
+
+#kpiSection h1, #kpiSection h2, #kpiSection h3, .kpi-section h1, .kpi-section h2, .kpi-section h3{
+  color:#eaf2ff !important;
+}
+#kpiSection .muted, .kpi-section .muted, #kpiSection small, .kpi-section small{
+  color:#b6c6ff !important;
+}
+
+#kpiSection input, #kpiSection textarea, #kpiSection select,
+.kpi-section input, .kpi-section textarea, .kpi-section select{
+  background: rgba(7,11,20,.78) !important;
+  color:#eaf2ff !important;
+  border-color: rgba(148,163,184,.22) !important;
+}
+
+/* Ensure same near-black background always shows through */
+html, body{
+  background: radial-gradient(1200px 420px at 50% 0%, rgba(255,226,163,.06), transparent 62%),
+              radial-gradient(900px 360px at 80% 10%, rgba(255,214,138,.04), transparent 60%),
+              radial-gradient(900px 520px at 20% 0%, rgba(120,170,255,.04), transparent 60%),
+              linear-gradient(180deg, #01020a 0%, #020412 40%, #03061a 100%) !important;
+}
+
+
+
+
+button::before,
+.btn::before,
+.nav-btn::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: -10%;
+  width: 120%;
+  height: 16px;
+  background:
+    radial-gradient(14px 8px at 10% 100%, rgba(255,255,255,.95) 60%, transparent 70%),
+    radial-gradient(18px 10px at 30% 100%, rgba(255,255,255,.92) 60%, transparent 72%),
+    radial-gradient(16px 9px at 55% 100%, rgba(255,255,255,.96) 60%, transparent 70%),
+    radial-gradient(20px 11px at 80% 100%, rgba(255,255,255,.9) 60%, transparent 72%);
+  filter:
+    drop-shadow(0 2px 3px rgba(0,0,0,.35))
+    drop-shadow(0 0 6px rgba(255,255,255,.35));
+  opacity: .85;
+  pointer-events: none;
+}
+
+button:hover::before,
+.btn:hover::before,
+.nav-btn:hover::before {
+  transform: translateY(2px);
+  opacity: .7;
+}
+
+button:active::before,
+.btn:active::before,
+.nav-btn:active::before {
+  transform: translateY(4px) scaleY(.85);
+  opacity: .6;
+}
+
+
+
+
+/* slight settling on hover */
+button:hover::after,
+.btn:hover::after,
+.nav-btn:hover::after {
+  transform: translateY(2px);
+  opacity: .8;
+}
+
+/* pressed – snow shifts a bit */
+button:active::after,
+.btn:active::after,
+.nav-btn:active::after {
+  transform: translateY(4px) scaleY(.9);
+  opacity: .7;
+}
+
+
+
+
+/* IMPORTANT: the snow must not overlap the button content area.
+   We place the snow blob entirely ABOVE the top edge: top = -H, height = H, so its bottom sits exactly at 0. */
+button, .btn, .nav-btn{
+  position: relative;
+  overflow: visible !important;
+}
+
+/* snow cap */
+button::after, .btn::after, .nav-btn::after{
+  content:"";
+  position:absolute;
+  left:-10%;
+  width:120%;
+  height:26px;          /* H */
+  top:-26px;            /* -H => NO overlap into button */
+  pointer-events:none;
+  z-index: 5;
+
+  /* One coherent snow "blob" + irregular bottom edge */
+  background:
+    radial-gradient(22px 14px at 10% 100%, rgba(255,255,255,.96) 64%, transparent 72%),
+    radial-gradient(28px 16px at 30% 100%, rgba(255,255,255,.92) 62%, transparent 74%),
+    radial-gradient(24px 15px at 54% 100%, rgba(255,255,255,.97) 64%, transparent 73%),
+    radial-gradient(30px 17px at 78% 100%, rgba(255,255,255,.90) 62%, transparent 75%),
+    radial-gradient(20px 13px at 94% 100%, rgba(255,255,255,.95) 64%, transparent 72%),
+    linear-gradient(to bottom, rgba(255,255,255,.92), rgba(255,255,255,.86)); /* fills gaps so it isn't "eggs" */
+
+  /* soften and seat it on top */
+  border-radius: 999px 999px 14px 14px;
+  filter:
+    drop-shadow(0 4px 6px rgba(0,0,0,.45))
+    drop-shadow(0 0 10px rgba(255,255,255,.28));
+  opacity:.92;
+}
+
+/* subtle interaction: snow "settles" (still stays outside) */
+button:hover::after, .btn:hover::after, .nav-btn:hover::after{
+  transform: translateY(2px); /* still above; bottom becomes slightly below 0 by 2px, acceptable */
+  opacity:.85;
+}
+button:active::after, .btn:active::after, .nav-btn:active::after{
+  transform: translateY(4px) scaleY(.92);
+  opacity:.78;
+}
+
+
+
+
+/* Apply only when button has class . */
+button., .btn., .nav-btn.{
+  position: relative;
+  overflow: visible !important;
+}
+
+/* Subtle snow ridge sitting on top edge (does NOT cover button face) */
+button.::after,
+.btn.::after,
+.nav-btn.::after{
+  content:"";
+  position:absolute;
+  left:-4%;
+  width:108%;
+  height:12px;      /* H */
+  top:-12px;        /* -H => stays outside */
+  pointer-events:none;
+  z-index: 3;
+  opacity:.55;
+
+  /* soft uneven ridge + tiny clumps (no big semicircles) */
+  background:
+    radial-gradient(10px 6px at 8% 100%, rgba(255,255,255,.90) 62%, transparent 72%),
+    radial-gradient(14px 7px at 28% 100%, rgba(255,255,255,.86) 60%, transparent 74%),
+    radial-gradient(12px 7px at 52% 100%, rgba(255,255,255,.92) 62%, transparent 73%),
+    radial-gradient(16px 8px at 76% 100%, rgba(255,255,255,.84) 60%, transparent 75%),
+    radial-gradient(10px 6px at 94% 100%, rgba(255,255,255,.88) 62%, transparent 72%),
+    linear-gradient(to bottom, rgba(255,255,255,.72), rgba(255,255,255,.56));
+
+  border-radius: 999px 999px 10px 10px;
+  filter:
+    drop-shadow(0 2px 3px rgba(0,0,0,.40))
+    drop-shadow(0 0 6px rgba(255,255,255,.20));
+}
+
+/* A tiny "frost edge" on the top border (very subtle) */
+button.::before,
+.btn.::before,
+.nav-btn.::before{
+  content:"";
+  position:absolute;
+  left:10%;
+  width:80%;
+  height:2px;
+  top:-1px;
+  pointer-events:none;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  opacity:.55;
+  filter: blur(.2px);
+}
+
+
+
+
+/* Use on .nav-btn and buttons marked with [] */
+.nav-btn, button[], .btn[]{
+  position: relative;
+  overflow: visible !important;
+}
+
+.nav-btn::after,
+button[]::after,
+.btn[]::after{
+  content:"";
+  position:absolute;
+  left:12%;
+  width:76%;
+  top:-2px;
+  height:6px;
+  pointer-events:none;
+  border-radius: 999px;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,.28),
+    rgba(255,255,255,.10),
+    rgba(255,255,255,0));
+  filter: blur(.2px) drop-shadow(0 2px 3px rgba(0,0,0,.35));
+  opacity:.55;
+}
+
+.nav-btn::before,
+button[]::before,
+.btn[]::before{
+  content:"";
+  position:absolute;
+  left:18%;
+  width:64%;
+  top:-1px;
+  height:2px;
+  pointer-events:none;
+  border-radius:999px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  opacity:.45;
+  filter: blur(.3px);
+}
+
+
+
+
+/* thin icy highlight exactly on the top border */
+.nav-btn::before,
+button[]::before,
+.btn[]::before{
+  content:"";
+  position:absolute;
+  left:10%;
+  width:80%;
+  top:-1px;
+  height:2px;
+  pointer-events:none;
+  border-radius:999px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  opacity:.35;
+  filter: blur(.35px);
+}
+
+/* subtle irregular frost dust ABOVE the border (very low height, few clumps) */
+.nav-btn::after,
+button[]::after,
+.btn[]::after{
+  content:"";
+  position:absolute;
+  left:8%;
+  width:84%;
+  top:-6px;
+  height:6px;
+  pointer-events:none;
+  border-radius: 999px;
+  opacity:.32;
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,.18), rgba(255,255,255,0)),
+    radial-gradient(8px 4px at 18% 90%, rgba(255,255,255,.28) 60%, transparent 72%),
+    radial-gradient(10px 5px at 54% 95%, rgba(255,255,255,.24) 60%, transparent 74%),
+    radial-gradient(7px 4px at 86% 88%, rgba(255,255,255,.26) 60%, transparent 72%);
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.35));
+}
+
+
+
+/* ================== DISABLE button "snow caps" / pseudo decorations ================== */
+button::before, button::after,
+.btn::before, .btn::after,
+.nav-btn::before, .nav-btn::after{
+  content: none !important;
+  display: none !important;
+}
+
+
+/* ================== FALLING SNOW (BACKGROUND) ================== */
+.snow{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0; /* behind UI */
+  opacity: .75;
+}
+.snow i{
+  position: absolute;
+  top: -12vh;
+  width: 2.2px;
+  height: 2.2px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.90);
+  filter: drop-shadow(0 0 8px rgba(255,255,255,.28));
+  animation: fall linear infinite;
+}
+@keyframes fall{
+  to{ transform: translateY(120vh); }
+}
+
+
+
+/* Keep UI above background snow */
+.stage, .navbar, .tabs, .right-nav, .container, .card, .panel, #app, #root, .main, .wrapper{
+  position: relative;
+  z-index: 2;
+}
+
+
+
+/* ================== RIGHT NAV RESTORE ================== */
+.right-nav, .nav-buttons, .sidebar, .nav, .tabs-right, .top-buttons{
+  position: fixed !important;
+  top: 34px !important;
+  right: 34px !important;
+  left: auto !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  align-items: flex-end !important;
+}
+.right-nav button, .nav-buttons button, .sidebar button, .nav button, .tabs-right button, .top-buttons button,
+.right-nav .nav-btn, .nav-buttons .nav-btn, .sidebar .nav-btn, .nav .nav-btn{
+  min-width: 240px;
+}
+
+
+
+/* ================== SCROLLBAR HIDE (VISUAL) ================== */
+/* Hide page scrollbar while keeping scrolling working */
+html, body{
+  scrollbar-width: none; /* Firefox */
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar{
+  width: 0; height: 0;
+}
+/* Hide iframe scrollbar visual if any */
+iframe{
+  scrollbar-width: none;
+}
+iframe::-webkit-scrollbar{
+  width: 0; height: 0;
+}
+
+
+
+/* ================== FIX: mapping blocks look blurred ================== */
+/* Make mapping table controls crisp (no frosted/backdrop blur on text) */
+#tbMap input, #tbMap select, #tbMap textarea,
+#mapEditor input, #mapEditor select, #mapEditor textarea{
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  background: rgba(8,12,22,.92) !important;
+  border-color: rgba(148,163,184,.28) !important;
+}
+
+/* If the catalog match field is rendered as a "pill"/div, keep it crisp too */
+#tbMap .pill, #tbMap .match, #tbMap .catalog, #tbMap .val, #tbMap .key{
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+</style>
 
 </head>
 <body>
+  <div class="snow" id="snow" aria-hidden="true"></div>
+  
+  
+<div class="ny-stage" aria-hidden="true">
+  <div class="ny-spill"></div>
+  <svg class="ny-wireSvg" viewBox="0 0 1500 150" preserveAspectRatio="none" aria-hidden="true">
+    <path class="ny-wireGlow" id="ny-wireGlow" d=""></path>
+    <path class="ny-wireBase" id="ny-wireBase" d=""></path>
+    <path class="ny-wireHighlight" id="ny-wireHighlight" d=""></path>
+  </svg>
+  <div class="ny-bulbs" id="ny-bulbs"></div>
+</div>
+
   <div class="navbar">
     <button class="tab active" id="tabEWL" type="button">EWL Order</button>
     <button class="tab" id="tabKPI" type="button">KPI</button>
-    <button class="tab" id="tabCalc" type="button">Вычисление</button>
-  </div>
+</div>
 
   <!-- EWL Order original content -->
   <div id="ewlSection">
@@ -622,7 +1221,13 @@ document.getElementById('clearOrder').onclick = () => {
   <div id="kpiSection" style="display:none">
     <iframe id="kpiFrame" srcdoc="&lt;!DOCTYPE html&gt;
 &lt;!-- saved from url=(0070)file:///C:/Users/imfideo/Downloads/kpi_builder_target_final%20(1).html --&gt;
-&lt;html lang=&quot;ru&quot;&gt;&lt;head&gt;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;
+&lt;html lang=&quot;ru&quot;&gt;&lt;head&gt;&lt;style&gt;html,body{margin:0;padding:0;background:radial-gradient(1200px 420px at 50% 0%, rgba(255,226,163,.06), transparent 62%),radial-gradient(900px 360px at 80% 10%, rgba(255,214,138,.04), transparent 60%),radial-gradient(900px 520px at 20% 0%, rgba(120,170,255,.04), transparent 60%),linear-gradient(180deg,#01020a 0%,#020412 40%,#03061a 100%) !important;color:#eaf2ff;}body{min-height:100vh;}.container,.card,.panel,.box,.content{background:rgba(15,23,42,.82)!important;border:1px solid rgba(148,163,184,.22)!important;border-radius:18px!important;color:#eaf2ff!important;box-shadow:0 22px 60px rgba(0,0,0,.55)!important;}input,textarea,select{background:rgba(7,11,20,.78)!important;color:#eaf2ff!important;border:1px solid rgba(148,163,184,.22)!important;}
+/* Hide scrollbars inside KPI iframe */
+html, body { margin:0; height:100%; }
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { width: 0 !important; height: 0 !important; }
+
+&lt;/style&gt;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;
   
   &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
   &lt;title&gt;KPI — Потери и избыток&lt;/title&gt;
@@ -774,67 +1379,57 @@ document.getElementById('clearOrder').onclick = () => {
   &lt;/script&gt;
 
 
-&lt;/body&gt;&lt;/html&gt;"></iframe>
+&lt;/body&gt;&lt;/html&gt;" style="width:100%;height:100%;border:0;overflow:hidden;"></iframe>
   </div>
 
   <!-- CALC embedded as iframe -->
-  <div id="calcSection" style="display:none">
-    <iframe id="calcFrame" src="calc_ab.html"></iframe>
-  </div>
-
   <script>
-    (function(){
-      const tabE = document.getElementById('tabEWL');
-      const tabK = document.getElementById('tabKPI');
-      const tabC = document.getElementById('tabCalc');
-      const secE = document.getElementById('ewlSection');
-      const secK = document.getElementById('kpiSection');
-      const secC = document.getElementById('calcSection');
-      function activate(which){
-        // hide all
-        secE.style.display = 'none';
-        secK.style.display = 'none';
-        secC.style.display = 'none';
-        tabE.classList.remove('active');
-        tabK.classList.remove('active');
-        tabC.classList.remove('active');
-        if(which==='ewl'){
-          secE.style.display='block'; tabE.classList.add('active');
-        } else if(which==='kpi'){
-          secK.style.display='block'; tabK.classList.add('active');
-        } else {
-          secC.style.display='block'; tabC.classList.add('active');
-        }
-      }
-      tabE.addEventListener('click', ()=>activate('ewl'));
-      tabK.addEventListener('click', ()=>activate('kpi'));
-      tabC.addEventListener('click', ()=>activate('calc'));
+  // Tabs: EWL ↔ KPI (calc removed)
+  (function(){
+    const tabE = document.getElementById('tabEWL');
+    const tabK = document.getElementById('tabKPI');
+    const secE = document.getElementById('ewlSection');
+    const secK = document.getElementById('kpiSection');
 
-      // Auto-resize iframe to its content height (same-origin because srcdoc)
-      const frame = document.getElementById('kpiFrame');
-      function resizeFrame(){
-        try {
-          const doc = frame.contentDocument || frame.contentWindow.document;
-          if(!doc) return;
-          const h = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight);
-          if(h) frame.style.height = (h + 20) + 'px';
-        } catch(e) { /* ignore */ }
-      }
-      frame.addEventListener('load', resizeFrame);
-      // re-check a few times after load in case content shifts
-      setTimeout(resizeFrame, 400);
-      setTimeout(resizeFrame, 1200);
-      setTimeout(resizeFrame, 2500);
+    function safeHide(el){ if(el) el.style.display='none'; }
+    function safeShow(el){ if(el) el.style.display='block'; }
+    function setActive(btn, on){ if(!btn) return; btn.classList.toggle('active', !!on); }
 
-      // Resize calc iframe similarly
-      const cframe = document.getElementById('calcFrame');
-      function resizeCalc(){ try{ const d=cframe.contentDocument||cframe.contentWindow.document; if(!d) return; const h=Math.max(d.body.scrollHeight,d.documentElement.scrollHeight); if(h) cframe.style.height=(h+20)+'px'; }catch(e){} }
-      cframe.addEventListener('load', resizeCalc);
-      setTimeout(resizeCalc, 300);
-      setTimeout(resizeCalc, 1000);
-      setTimeout(resizeCalc, 2200);
-    })();
-  </script>
+    function activate(which){
+      safeHide(secE); safeHide(secK);
+      setActive(tabE,false); setActive(tabK,false);
+
+      if(which==='kpi'){
+        safeShow(secK); setActive(tabK,true);
+      } else {
+        safeShow(secE); setActive(tabE,true);
+      }
+    }
+
+    if(tabE){ tabE.addEventListener('click', (e)=>{ e.preventDefault(); activate('ewl'); }); }
+    if(tabK){ tabK.addEventListener('click', (e)=>{ e.preventDefault(); activate('kpi'); }); }
+
+    // Default
+    activate('ewl');
+
+    // KPI iframe autosize (only if present)
+    const frame = document.getElementById('kpiFrame');
+    if(frame){
+      const resize = () => {
+        try{
+          const doc = frame.contentDocument || frame.contentWindow?.document;
+          if(!doc || !doc.body) return;
+          const h = Math.max(doc.body.scrollHeight, doc.documentElement?.scrollHeight || 0);
+          if(h) frame.style.height = (h + 24) + 'px';
+        }catch(_){}
+      };
+      frame.addEventListener('load', resize);
+      setTimeout(resize, 400);
+      setTimeout(resize, 1200);
+      setTimeout(resize, 2500);
+    }
+  })();
+</script>
 
   <!-- Инициализация flatpickr после того, как DOM уже отрисован -->
   <script>
@@ -848,7 +1443,133 @@ document.getElementById('clearOrder').onclick = () => {
       }
     });
   </script>
+
+<script>
+/* ===================== New Year Garland init ===================== */
+(() => {
+  const bulbsEl = document.getElementById('ny-bulbs');
+  const snowEl  = document.getElementById('ny-snow');
+
+  const wireGlow = document.getElementById('ny-wireGlow');
+  const wireBase = document.getElementById('ny-wireBase');
+  const wireHighlight = document.getElementById('ny-wireHighlight');
+
+  const params = [{"amp": 1.2071415981588367, "dur": 7.239089544321984, "delay": -0.4547364958576239, "scale": 1.0038170126179593, "warm": 0.01586254003684983, "bright": 0.9609723589239753}, {"amp": 0.966194309469389, "dur": 7.047634556167222, "delay": -2.2207036786991887, "scale": 1.0627358370535915, "warm": -0.029646419814785968, "bright": 0.8928163030298861}, {"amp": 0.8816034837426555, "dur": 8.23857813746871, "delay": -1.8393691047525653, "scale": 0.9275384605465723, "warm": 0.06804127628786563, "bright": 1.051541867470136}, {"amp": 1.3885302801804564, "dur": 7.462250818314283, "delay": -5.055035429159025, "scale": 0.9227001326509289, "warm": 0.01812193927875267, "bright": 0.8342922652405251}, {"amp": 0.9711874365181362, "dur": 5.967772054660859, "delay": -5.819504464651269, "scale": 1.0035082030201914, "warm": 0.008458422832232249, "bright": 1.0221825108444478}, {"amp": 1.267211703287669, "dur": 7.561166831676708, "delay": -3.00136108675925, "scale": 1.0392409157402662, "warm": 0.010306286975951352, "bright": 0.8867590959193326}, {"amp": 1.6978905804167759, "dur": 8.982766566624797, "delay": -0.9587067030428287, "scale": 1.047405731869631, "warm": -0.005319506128289506, "bright": 0.8751198163858973}, {"amp": 1.0601359525827818, "dur": 5.280893998239703, "delay": -1.402272681537558, "scale": 0.9920719648853285, "warm": 0.05312419840692966, "bright": 0.9127632476094243}, {"amp": 1.662238144987832, "dur": 8.389239093211218, "delay": -5.9967303776665775, "scale": 0.95774913465133, "warm": 0.060129912091459965, "bright": 0.9327969462432799}, {"amp": 1.6823230470568629, "dur": 6.589697552317125, "delay": -5.561769936997813, "scale": 1.0333018842021244, "warm": 0.0456361944544316, "bright": 0.8847461408440342}, {"amp": 0.8784297785169531, "dur": 6.330342501853392, "delay": -0.21554270043741575, "scale": 1.0564472930588766, "warm": -0.02702091526384941, "bright": 0.8791331077343512}, {"amp": 0.8909416780610346, "dur": 5.239573611764307, "delay": -1.217870928936156, "scale": 0.951982063075706, "warm": 0.02152246557714344, "bright": 0.9273819706002452}, {"amp": 0.9716159737613295, "dur": 7.927576862857402, "delay": -5.214197497700281, "scale": 1.03586872226801, "warm": -0.027184121359632385, "bright": 0.920981348139141}, {"amp": 0.9915791057081805, "dur": 6.079179908762393, "delay": -0.17442566268785065, "scale": 1.0646140705547729, "warm": -0.006544033514191153, "bright": 1.032367627059753}, {"amp": 0.9896391992909955, "dur": 6.577098548288218, "delay": -0.8737385897926169, "scale": 1.035530418186283, "warm": -0.02896339725977288, "bright": 1.0574324074024415}, {"amp": 0.9919190317197704, "dur": 6.033110231446482, "delay": -1.3638618613630609, "scale": 0.9792119765985915, "warm": -0.007404276114115899, "bright": 0.8376156528132217}, {"amp": 0.8811054556657373, "dur": 7.330939192670208, "delay": -4.541922479174626, "scale": 1.028231091844749, "warm": 0.0008874451252551055, "bright": 0.9287699451337238}, {"amp": 1.6632212052385817, "dur": 6.93489813305018, "delay": -2.552572527420315, "scale": 1.0759746202044, "warm": -0.019888951264344628, "bright": 0.8569924765422545}, {"amp": 1.6175813578482345, "dur": 8.271207797838592, "delay": -4.5030086014245025, "scale": 0.9541641198733869, "warm": 0.041336682879831645, "bright": 1.045697175062772}, {"amp": 0.9769308158626899, "dur": 8.800543409234582, "delay": -0.7068614744015242, "scale": 1.02863615866102, "warm": 0.006360294634209368, "bright": 0.8449215235275875}, {"amp": 0.8348268245244044, "dur": 8.85072604582246, "delay": -4.569556843944103, "scale": 1.046824302900508, "warm": -0.011732046184765681, "bright": 1.0176922832217647}, {"amp": 1.336819675876942, "dur": 6.173741385938948, "delay": -4.947399619404845, "scale": 1.0496635989538736, "warm": -0.0324346263415812, "bright": 0.87481512095803}, {"amp": 1.303429708541608, "dur": 8.409599501367525, "delay": -2.3141819056507913, "scale": 0.9704394906627539, "warm": 0.06090961963418328, "bright": 0.8689549310487242}, {"amp": 0.8149173137712397, "dur": 6.076775712115364, "delay": -3.325766880107044, "scale": 0.9308820036678588, "warm": -0.02061208470899011, "bright": 0.908508488889343}, {"amp": 1.3149524806123867, "dur": 5.526314082509044, "delay": -3.8271290598031147, "scale": 1.0803692413945662, "warm": 0.06785427634720612, "bright": 0.9776636911622973}, {"amp": 1.422099432123788, "dur": 7.337761072720715, "delay": -5.1579168771262935, "scale": 0.926314496593518, "warm": -0.03803163832256781, "bright": 1.038450988574276}, {"amp": 1.4308730168687123, "dur": 8.851084054516013, "delay": -5.872444930745392, "scale": 1.0345132138838624, "warm": 0.013045929501948973, "bright": 0.9953195154268677}, {"amp": 1.0870140412669274, "dur": 8.99743050552702, "delay": -5.548422599445697, "scale": 1.0182971646353578, "warm": 0.04107060443528849, "bright": 1.036047011499851}, {"amp": 1.463379320974904, "dur": 7.814762476967109, "delay": -1.2403999434390958, "scale": 1.0847004643193672, "warm": -0.0012982493688020874, "bright": 0.9844350292800875}, {"amp": 1.610752345397341, "dur": 8.484405036488043, "delay": -3.4970811481368838, "scale": 1.062295760105912, "warm": 0.0549819941445576, "bright": 0.9574737996122823}, {"amp": 1.3624644919934772, "dur": 6.529334109401, "delay": -2.503926649133243, "scale": 1.0295960421339039, "warm": -0.03117777682862187, "bright": 0.9734570350329524}, {"amp": 1.69398996927949, "dur": 8.519167316444108, "delay": -1.6307575406067132, "scale": 0.989918539733926, "warm": 0.04085419667033265, "bright": 0.9594286908944054}, {"amp": 1.1964702458408474, "dur": 8.353480116762276, "delay": -5.49730666643245, "scale": 1.0550378319070908, "warm": -0.03672311869169885, "bright": 0.9643084634919147}, {"amp": 1.232861133814317, "dur": 5.9208865749059845, "delay": -1.8099919209084696, "scale": 1.0095051039784424, "warm": 0.027595358808446484, "bright": 1.0409114256256176}, {"amp": 1.0302471980957435, "dur": 5.045228820084075, "delay": -4.193804153358026, "scale": 1.042064656243596, "warm": -0.017716814525251028, "bright": 0.86070571676571}, {"amp": 1.6151494399329411, "dur": 7.639960018703384, "delay": -3.3484051153818806, "scale": 1.0805108456571928, "warm": -0.0040343319287651225, "bright": 0.9798157750080811}, {"amp": 0.9786552009787843, "dur": 6.723581129423193, "delay": -1.1640696039216358, "scale": 1.084559815794621, "warm": 0.05682958098918812, "bright": 0.9122604838959767}, {"amp": 1.324796468978547, "dur": 6.265947377976553, "delay": -5.182942041700211, "scale": 1.0093640674884181, "warm": 0.05208051792175935, "bright": 1.0236928731928572}, {"amp": 1.4400959853658462, "dur": 8.80000060738206, "delay": -4.339224018669533, "scale": 0.9504432038985885, "warm": 0.009571439637606483, "bright": 0.886039077506778}, {"amp": 0.9926723394379506, "dur": 6.65593920298064, "delay": -2.245598650575788, "scale": 1.0088975660576411, "warm": -0.0053091190100429675, "bright": 1.0213884189878142}, {"amp": 1.6838328552417359, "dur": 6.809909353266543, "delay": -5.551924698260694, "scale": 0.9256674396251311, "warm": 0.05601119597875328, "bright": 0.8299572158067012}, {"amp": 1.4377678361010797, "dur": 7.282327841347895, "delay": -4.1458178915402435, "scale": 1.06247243390625, "warm": -0.03789745837071234, "bright": 0.852611478099565}, {"amp": 1.2093491723457475, "dur": 5.098906033313666, "delay": -1.0219893932456152, "scale": 0.9627336215992702, "warm": -0.024503802153071727, "bright": 0.8312662166071163}, {"amp": 1.366262275008666, "dur": 6.78592306700409, "delay": -2.2202145813975527, "scale": 1.0379077472924059, "warm": 0.048812340204083475, "bright": 1.0500305564605625}];
+  const N = params.length;
+
+  function yAt(t){
+    // natural sag with slight irregularity
+    return 46 + 13*Math.sin(t*Math.PI*2) + 8*Math.sin(t*Math.PI*4 + 0.9);
+  }
+  function yWire(t){ return yAt(t); }
+
+  // draw wire path in stage coordinate system (1500x150)
+  const W = 1500;
+  const steps = 90;
+  let d = "";
+  for (let s=0; s<=steps; s++) {
+    const tt = s/steps;
+    const x = tt*W;
+    const y = yWire(tt);
+    d += (s===0 ? `M ${x.toFixed(2)} ${y.toFixed(2)}` : ` L ${x.toFixed(2)} ${y.toFixed(2)}`);
+  }
+  wireGlow.setAttribute("d", d);
+  wireBase.setAttribute("d", d);
+  wireHighlight.setAttribute("d", d);
+
+  // build bulbs
+  for (let i=0; i<N; i++) {
+    const t = (i+0.5)/N;
+    const x = t*100;        // %
+    const y = yWire(t);     // px
+
+    const p = params[i];
+
+    const wrap = document.createElement('div');
+    wrap.className = 'ny-bulbWrap';
+    wrap.style.left = x + '%';
+    wrap.style.top  = y + 'px';
+
+    // subtle placement variance (real-life irregularity)
+    wrap.style.marginTop = ((Math.random()*3.6)-1.8).toFixed(2) + 'px';
+
+    const sway = (0.9 + 0.7*Math.random()) * p.amp; // deg
+    wrap.style.setProperty('--ny-sway', sway.toFixed(2) + 'deg');
+    wrap.style.animation = `ny-sway ${p.dur.toFixed(2)}s ease-in-out ${p.delay.toFixed(2)}s infinite`;
+
+    const drop = document.createElement('div');
+    drop.className = 'ny-drop';
+
+    const cap = document.createElement('div');
+    cap.className = 'ny-cap';
+
+    const bulb = document.createElement('div');
+    bulb.className = 'ny-bulb';
+
+    const s = (p.scale * (0.94 + Math.random()*0.16));
+    bulb.style.transform = `translateX(-50%) scale(${s.toFixed(2)})`;
+
+    const flickDur = (2.6 + Math.random()*1.6);
+    const flickDel = (-Math.random()*3.2);
+    bulb.style.animation = `ny-flicker ${flickDur.toFixed(2)}s ease-in-out ${flickDel.toFixed(2)}s infinite`;
+
+    const hue = (p.warm*18);
+    bulb.style.filter = `brightness(${p.bright.toFixed(2)}) saturate(${(1.05+Math.random()*0.18).toFixed(2)}) hue-rotate(${hue.toFixed(2)}deg)`;
+
+    wrap.appendChild(drop);
+    wrap.appendChild(cap);
+    wrap.appendChild(bulb);
+    bulbsEl.appendChild(wrap);
+  }
+
+  // snow (subtle)
+  for (let i=0;i<54;i++) {
+    const s = document.createElement('i');
+    s.style.left = (Math.random()*100).toFixed(2) + '%';
+    s.style.animationDuration = (14 + Math.random()*16).toFixed(2) + 's';
+    s.style.opacity = (0.28 + Math.random()*0.50).toFixed(2);
+    s.style.transform = `translateY(${(-10 - Math.random()*80).toFixed(1)}vh)`;
+    snowEl.appendChild(s);
+  }
+})();
+</script>
+
+
+<script>
+(function(){
+  function addSnowcap(){
+    const targets = new Set([
+      "EWL Order","KPI","Предпросмотр","Скачать Excel","Запомнить шаблон","Забыть"     ]);
+    document.querySelectorAll("button, .btn, .nav-btn").forEach(b=>{
+      const t = (b.textContent||"").trim();
+      if(targets.has(t)) b.classList.add("");
+    });
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", addSnowcap);
+  else addSnowcap();
+})();
+</script>
+
+
+<script>
+(function(){
+  const snow = document.getElementById('snow');
+  if(!snow) return;
+  snow.innerHTML = '';
+  const COUNT = 70;
+  for(let i=0;i<COUNT;i++){
+    const s = document.createElement('i');
+    s.style.left = (Math.random()*100).toFixed(2) + '%';
+    s.style.opacity = (0.25 + Math.random()*0.55).toFixed(2);
+    s.style.animationDuration = (14 + Math.random()*18).toFixed(2) + 's';
+    s.style.animationDelay = (-Math.random()*18).toFixed(2) + 's';
+    const size = (1.4 + Math.random()*2.6);
+    s.style.width = s.style.height = size.toFixed(2) + 'px';
+    snow.appendChild(s);
+  }
+})();
+</script>
+
 </body>
 </html>
-
 
