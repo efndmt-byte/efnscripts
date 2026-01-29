@@ -1200,7 +1200,7 @@ document.getElementById('download').onclick=async()=>{
         if(nrm(c)===nrm(city)){ code=(typeof b==='number')?String(Math.trunc(b)):String(b??''); break; }
       }
     }
-    const merged=(city==='Тольятти-5')?'1369-Тольятти-5':(code?`${code} - ${city}`:city);
+    const merged = (code && city) ? `${code} - ${city}` : (city || code || '');
     order.cell('D2').value(merged);
 
     const dt = document.getElementById('date').value?.trim();
