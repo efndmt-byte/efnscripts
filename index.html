@@ -265,7 +265,7 @@
       border-radius: 999px;
     }
     /* Push main sections so they don't hide under the sidebar */
-    #ewlSection, #drinkitSection, #kpiSection, #calcSection{
+    #ewlSection, #kpiSection, #calcSection{
       margin-right: 300px; /* sidebar width + spacing */
     }
     /* Make iframes adapt in width */
@@ -278,7 +278,7 @@
         width: auto;
         margin: 0 16px 12px;
       }
-      #ewlSection, #drinkitSection, #kpiSection, #calcSection{
+      #ewlSection, #kpiSection, #calcSection{
         margin-right: 0;
       }
     }
@@ -795,8 +795,7 @@ iframe::-webkit-scrollbar{
 </div>
 
   <div class="navbar">
-    <button class="tab active" id="tabEWL" type="button">Заказ Додо</button>
-    <button class="tab" id="tabDrinkit" type="button">Заказ дринкит</button>
+    <button class="tab active" id="tabEWL" type="button">EWL Order</button>
     <button class="tab" id="tabKPI" type="button">KPI</button>
 </div>
 
@@ -901,44 +900,7 @@ iframe::-webkit-scrollbar{
 <script>
 /* ====================== БАЗОВЫЕ УТИЛЫ ====================== */
 const LS_KEY='ewl_map_v2';
-function norm(s){
-  return String(s||'')
-    .toLowerCase()
-    .replace(/ /g,' ')
-    .replace(/[ё]/g,'е')
-    .replace(/[«»"'`]/g,'')
-    .replace(/[()\[\]{}]/g,' ')
-    .replace(/[,:;!?]/g,' ')
-    .replace(/[\/]+/g,' ')
-    .replace(/[×xх*]+/g,' x ')
-    .replace(/№/g,' ')
-    .replace(/гр/g,' г')
-    .replace(/кг/g,' кг')
-    .replace(/л/g,' л')
-    .replace(/мл/g,' мл')
-    .replace(/шт/g,' шт')
-    .replace(/упак/g,' упаковка')
-    .replace(/инд\./g,' индивидуальной')
-    .replace(/\s+/g,' ')
-    .trim();
-}
-function normCompact(s){
-  return norm(s).replace(/[^a-zа-я0-9]+/gi,'');
-}
-function splitAlphaNum(s){
-  return String(s||'').replace(/([0-9])([a-zа-я])/gi,'$1 $2').replace(/([a-zа-я])([0-9])/gi,'$1 $2');
-}
-function tokenizeForMatch(s){
-  const stop = new Set(['для','и','в','на','с','по','из','не','обязательно','шт','кг','г','гр','л','мл','x']);
-  return norm(splitAlphaNum(s)).split(' ').filter(t => t && !stop.has(t));
-}
-function diceScore(aTokens,bTokens){
-  if(!aTokens.length || !bTokens.length) return 0;
-  const a=new Set(aTokens), b=new Set(bTokens);
-  let inter=0;
-  for(const t of a) if(b.has(t)) inter++;
-  return (2*inter)/(a.size+b.size);
-}
+function norm(s){return String(s||'').toLowerCase().replace(/[ё]/g,'е').replace(/["'`]/g,'').replace(/\s+/g,' ').trim();}
 
 function loadMemory(){try{const raw=localStorage.getItem(LS_KEY);if(!raw) return {version:2,map:{}};const data=JSON.parse(raw);if(!data.map) return {version:2,map:{}};return {version:2,map:data.map};}catch{return {version:2,map:{}}}}
 function saveMemory(obj){localStorage.setItem(LS_KEY, JSON.stringify(obj));}
@@ -1295,48 +1257,6 @@ document.getElementById('clearOrder').onclick = () => {
 
   </div>
 
-  <!-- Drinkit order -->
-  <div id="drinkitSection" style="display:none">
-    <div class="card">
-      <h1>Заказ дринкит</h1>
-
-      <label>Загрузи шаблон заказа дринкит
-        <input type="file" id="drinkitTmpl" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-      </label>
-      <div class="inline-controls" style="margin-top:8px">
-        <button class="btn" id="drinkitRemember">Запомнить шаблон</button>
-        <button class="btn" id="drinkitClearStored">Забыть</button>
-        <span id="drinkitStoredInfo" class="muted"></span>
-      </div>
-
-      <label style="margin-top:14px">Текст заявки
-        <textarea id="drinkitOrder" placeholder="Вставьте список: наименование + количество"></textarea>
-      </label>
-      <button class="btn" id="drinkitClearOrder" style="margin-top:6px">Очистить текст</button>
-
-      <div class="toolbar">
-        <button class="btn" id="drinkitPreview">Предпросмотр</button>
-        <button class="btn" id="drinkitDownload">Скачать Excel</button>
-        <label class="inline"><input type="checkbox" id="drinkitHideMatched"> Скрывать совпавшие</label>
-        <label class="inline"><input type="checkbox" id="drinkitOnlyProblems"> Только проблемные</label>
-      </div>
-
-      <div class="legend">
-        <span class="chip unm">не найдено</span>
-        <span id="drinkitStatMatched" class="muted">Совпадений: 0 / 0</span>
-        <span id="drinkitStatTotal" class="muted">Итого заказано единиц: 0</span>
-      </div>
-
-      <div id="drinkitInfo" style="margin-top:6px"></div>
-
-      <table>
-        <thead><tr><th>Наименование (из заявки)</th><th>Соответствие в шаблоне</th><th>Кол-во</th></tr></thead>
-        <tbody id="drinkitTbMap"></tbody>
-      </table>
-    </div>
-  </div>
-
-
   <!-- KPI embedded as iframe to avoid ID/script conflicts -->
   <div id="kpiSection" style="display:none">
     <iframe id="kpiFrame" srcdoc="&lt;!DOCTYPE html&gt;
@@ -1502,244 +1422,13 @@ html, body { margin:0; height:100%; }
 &lt;/body&gt;&lt;/html&gt;" style="width:100%;height:100%;border:0;overflow:hidden;"></iframe>
   </div>
 
-<script>
-/* ====================== DRINKIT ====================== */
-const DRINKIT_DB_KEY_BUF='drinkit_template_buf';
-const DRINKIT_DB_KEY_NAME='drinkit_template_name';
-
-let drinkitCatalog=[];      // [{r, code, text, norm}]
-let drinkitAssignments=[];  // [{src, qty, destR}]
-let drinkitLastRows=[];     // [[src,qty]...]
-let drinkitRowMetas=[];     // [{tr,destR,isDup}...]
-
-function setDrinkitInfo(msg,isErr=false){
-  const box=document.getElementById('drinkitInfo');
-  if(!box) return;
-  box.innerHTML=isErr?`<span class="error">${msg}</span>`:`<span class="ok">${msg}</span>`;
-}
-
-function parseDrinkitOrder(text){
-  const lines=String(text||'').split(/\r?\n/);
-  const out=[];
-  for(const raw of lines){
-    const line=String(raw||'').replace(/\u00A0/g,' ').trim();
-    if(!line) continue;
-    const m=line.match(/(.+?)[\t ]+(-?\d+(?:[.,]\d+)?)\s*$/);
-    if(!m) continue;
-    out.push([m[1].trim(), parseFloat(m[2].replace(',', '.'))]);
-  }
-  return out;
-}
-
-async function readDrinkitCatalog(){
-  const f=document.getElementById('drinkitTmpl').files[0];
-  const buf = f ? await f.arrayBuffer() : (window.drinkitTemplateBuf || await getKV(DRINKIT_DB_KEY_BUF));
-  if(!buf) throw new Error('Нет шаблона дринкит');
-
-  const wb = XLSX.read(buf,{type:'array',cellText:true,cellDates:true,cellNF:true});
-  const sh = wb.Sheets[wb.SheetNames[0]];
-  if(!sh) throw new Error('В шаблоне нет листов');
-
-  const rows = XLSX.utils.sheet_to_json(sh,{header:1,defval:''});
-  drinkitCatalog = [];
-  for(let i=1;i<rows.length;i++){
-    const code = String(rows[i][0] ?? '').trim();
-    const text = String(rows[i][2] ?? '').replace(/\u00A0/g,' ').trim();
-    if(code || text){
-      drinkitCatalog.push({
-        r:i+1,
-        code,
-        text,
-        norm:norm(text),
-        compact:normCompact(text),
-        tokens:tokenizeForMatch(text)
-      });
-    }
-  }
-  return buf;
-}
-
-function autoMatchDrinkit(userText){
-  if(!userText) return null;
-  const userNorm = norm(userText);
-  const userCompact = normCompact(userText);
-  const userTokens = tokenizeForMatch(userText);
-
-  let hit = drinkitCatalog.find(c => c.norm === userNorm || c.compact === userCompact);
-  if(hit) return hit.r;
-
-  hit = drinkitCatalog.find(c => c.norm.includes(userNorm) || userNorm.includes(c.norm) || c.compact.includes(userCompact) || userCompact.includes(c.compact));
-  if(hit) return hit.r;
-
-  hit = drinkitCatalog.find(c => userTokens.length && userTokens.every(t => c.tokens.includes(t)));
-  if(hit) return hit.r;
-
-  let best = null;
-  let bestScore = 0;
-  for(const c of drinkitCatalog){
-    const score = diceScore(userTokens, c.tokens);
-    if(score > bestScore){
-      bestScore = score;
-      best = c;
-    }
-  }
-  return best && bestScore >= 0.72 ? best.r : null;
-}
-
-function updateDrinkitStats(){
-  const total=drinkitLastRows.reduce((s,[,q])=>s+Number(q||0),0);
-  const matched=drinkitAssignments.reduce((s,a)=>s+(a.destR!=null?1:0),0);
-  document.getElementById('drinkitStatMatched').textContent=`Совпадений: ${matched} / ${drinkitLastRows.length}`;
-  document.getElementById('drinkitStatTotal').textContent=`Итого заказано единиц: ${total}`;
-}
-
-function applyDrinkitRowFlags(tr,unmatched){
-  tr.classList.toggle('unmatched',!!unmatched);
-}
-
-function applyDrinkitFilters(){
-  const hide=document.getElementById('drinkitHideMatched').checked;
-  const prob=document.getElementById('drinkitOnlyProblems').checked;
-  for(const m of drinkitRowMetas){
-    const unmatched=(m.destR==null);
-    let show=true;
-    if(hide && !unmatched) show=false;
-    if(prob && !unmatched) show=false;
-    m.tr.style.display=show?'':'none';
-  }
-}
-
-function buildDrinkitTable(rows){
-  const tb=document.getElementById('drinkitTbMap');
-  tb.innerHTML='';
-  drinkitAssignments=[];
-  drinkitLastRows=rows;
-  drinkitRowMetas=[];
-
-  for(const [src,qty] of rows){
-    const destR = autoMatchDrinkit(src);
-    const matched = destR != null ? drinkitCatalog.find(c => c.r === destR) : null;
-
-    const tr=document.createElement('tr');
-    tr.innerHTML = `<td></td><td></td><td></td>`;
-    tr.children[0].textContent = src;
-    tr.children[1].textContent = matched ? `${matched.code} — ${matched.text}` : '— не найдено —';
-    tr.children[2].textContent = qty;
-    applyDrinkitRowFlags(tr, !matched);
-    tb.appendChild(tr);
-
-    drinkitAssignments.push({src,qty,destR});
-    drinkitRowMetas.push({tr,destR});
-  }
-
-  applyDrinkitFilters();
-  updateDrinkitStats();
-}
-
-function buildDrinkitFilename(){
-  return 'Заказ дринкит.xlsx';
-}
-
-document.getElementById('drinkitPreview').onclick=async()=>{
-  try{
-    setDrinkitInfo('');
-    await readDrinkitCatalog();
-    const rows=parseDrinkitOrder(document.getElementById('drinkitOrder').value);
-    buildDrinkitTable(rows);
-    setDrinkitInfo(`Каталог загружен: ${drinkitCatalog.length} позиций.`);
-  }catch(e){
-    setDrinkitInfo(e.message,true);
-  }
-};
-
-document.getElementById('drinkitDownload').onclick=async()=>{
-  try{
-    setDrinkitInfo('');
-    const rows = parseDrinkitOrder(document.getElementById('drinkitOrder').value);
-    if(!rows.length) throw new Error('Нет строк для обработки');
-
-    const buf = await readDrinkitCatalog();
-    if(!drinkitLastRows.length || drinkitLastRows.length !== rows.length){
-      buildDrinkitTable(rows);
-    }
-
-    const wb = await XlsxPopulate.fromDataAsync(buf);
-    const sh = wb.sheet(0);
-    const endRow = sh.usedRange().endCell().rowNumber();
-
-    for(let r=2;r<=endRow;r++) sh.cell(r,2).value(0);
-    let written=0;
-    for(const a of drinkitAssignments){
-      if(a.destR!=null && a.destR>=2 && a.destR<=endRow){
-        sh.cell(a.destR,2).value(a.qty);
-        written++;
-      }
-    }
-
-    const out = await wb.outputAsync();
-    const blob = new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = buildDrinkitFilename();
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),1500);
-
-    const missed = drinkitAssignments.filter(x => x.destR == null).length;
-    setDrinkitInfo(`Скачано. Записано позиций: ${written}. Не найдено: ${missed}.`, missed>0);
-  }catch(e){
-    setDrinkitInfo(e.message,true);
-  }
-};
-
-document.getElementById('drinkitHideMatched').addEventListener('change',applyDrinkitFilters);
-document.getElementById('drinkitOnlyProblems').addEventListener('change',applyDrinkitFilters);
-document.getElementById('drinkitClearOrder').onclick=()=>{ document.getElementById('drinkitOrder').value=''; };
-
-document.getElementById('drinkitRemember').onclick=async()=>{
-  const f=document.getElementById('drinkitTmpl').files[0];
-  if(!f){ setDrinkitInfo('Выберите .xlsx',true); return; }
-  const buf=await f.arrayBuffer();
-  await setKV(DRINKIT_DB_KEY_BUF,buf);
-  await setKV(DRINKIT_DB_KEY_NAME,f.name);
-  window.drinkitTemplateBuf=buf;
-  window.drinkitTemplateName=f.name;
-  document.getElementById('drinkitStoredInfo').textContent='Шаблон: '+f.name;
-  setDrinkitInfo('Шаблон дринкит запомнен');
-};
-
-document.getElementById('drinkitClearStored').onclick=async()=>{
-  await delKV(DRINKIT_DB_KEY_BUF);
-  await delKV(DRINKIT_DB_KEY_NAME);
-  window.drinkitTemplateBuf=null;
-  window.drinkitTemplateName=null;
-  document.getElementById('drinkitStoredInfo').textContent='';
-  setDrinkitInfo('Шаблон дринкит забыли');
-};
-
-(async()=>{
-  try{
-    const buf = await getKV(DRINKIT_DB_KEY_BUF);
-    const name = await getKV(DRINKIT_DB_KEY_NAME);
-    if(buf){
-      window.drinkitTemplateBuf=buf;
-      window.drinkitTemplateName=name||'(запомненный)';
-      const info=document.getElementById('drinkitStoredInfo');
-      if(info) info.textContent='Шаблон: '+window.drinkitTemplateName;
-    }
-  }catch(_){}
-})();
-</script>
-
   <!-- CALC embedded as iframe -->
   <script>
-  // Tabs: EWL ↔ KPI ↔ Drinkit
-
+  // Tabs: EWL ↔ KPI (calc removed)
   (function(){
     const tabE = document.getElementById('tabEWL');
-    const tabD = document.getElementById('tabDrinkit');
     const tabK = document.getElementById('tabKPI');
     const secE = document.getElementById('ewlSection');
-    const secD = document.getElementById('drinkitSection');
     const secK = document.getElementById('kpiSection');
 
     function safeHide(el){ if(el) el.style.display='none'; }
@@ -1747,20 +1436,17 @@ document.getElementById('drinkitClearStored').onclick=async()=>{
     function setActive(btn, on){ if(!btn) return; btn.classList.toggle('active', !!on); }
 
     function activate(which){
-      safeHide(secE); safeHide(secD); safeHide(secK);
-      setActive(tabE,false); setActive(tabD,false); setActive(tabK,false);
+      safeHide(secE); safeHide(secK);
+      setActive(tabE,false); setActive(tabK,false);
 
       if(which==='kpi'){
         safeShow(secK); setActive(tabK,true);
-      } else if(which==='drinkit'){
-        safeShow(secD); setActive(tabD,true);
       } else {
         safeShow(secE); setActive(tabE,true);
       }
     }
 
     if(tabE){ tabE.addEventListener('click', (e)=>{ e.preventDefault(); activate('ewl'); }); }
-    if(tabD){ tabD.addEventListener('click', (e)=>{ e.preventDefault(); activate('drinkit'); }); }
     if(tabK){ tabK.addEventListener('click', (e)=>{ e.preventDefault(); activate('kpi'); }); }
 
     // Default
