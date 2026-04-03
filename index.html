@@ -81,7 +81,8 @@
     .combo-list{
       position:absolute;left:0;right:0;top:calc(100% + 6px);
       background:#0f1530;border:1px solid #7aa2ff55;border-radius:12px;
-      max-height:320px;overflow:auto;display:none;z-index:20
+      max-height:320px;overflow-y:auto;overflow-x:hidden;display:none;z-index:20;
+      overscroll-behavior:contain;
     }
     .combo-list.open{display:block}
     .combo-item{padding:8px 10px;border-bottom:1px solid #7aa2ff22;cursor:pointer}
@@ -1374,6 +1375,34 @@ button::after{
 }
 </style>
 
+
+<style id="city-scrollbar-visible-fix">
+  /* Показать именно скроллбар у списка ресторанов */
+  .combo-list{
+    max-height: 320px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #cbd5e1 #ffffff !important;
+  }
+  .combo-list::-webkit-scrollbar{
+    width: 10px !important;
+    height: 10px !important;
+  }
+  .combo-list::-webkit-scrollbar-track{
+    background: #ffffff !important;
+    border-radius: 10px !important;
+  }
+  .combo-list::-webkit-scrollbar-thumb{
+    background: #cbd5e1 !important;
+    border-radius: 10px !important;
+    border: 2px solid #ffffff !important;
+  }
+  .combo-list::-webkit-scrollbar-thumb:hover{
+    background: #94a3b8 !important;
+  }
+</style>
+
 </head>
 <body>
   
@@ -1530,14 +1559,37 @@ const cityBox   = document.getElementById('cityComboBox');
 
 function renderCityList(filter=''){
   const q = norm(filter);
-  const list = citiesArray
+  const filtered = citiesArray
     .filter(c => !q || norm(c.name).includes(q))
+    .sort((a,b) => {
+      const an = norm(a.name), bn = norm(b.name);
+      const aExact = q && an === q ? 0 : 1;
+      const bExact = q && bn === q ? 0 : 1;
+      if (aExact !== bExact) return aExact - bExact;
+
+      const aPrefix = q && an.startsWith(q) ? 0 : 1;
+      const bPrefix = q && bn.startsWith(q) ? 0 : 1;
+      if (aPrefix !== bPrefix) return aPrefix - bPrefix;
+
+      return a.name.localeCompare(b.name, 'ru');
+    });
+
+  const list = filtered
     .map(c => `<div class="combo-item" data-name="${c.name.replace(/"/g,'&quot;')}">${c.name}</div>`)
     .join('') || '<div class="combo-item" style="pointer-events:none;opacity:.6">Ничего не найдено</div>';
+
   cityList.innerHTML = list;
+
   for(const it of cityList.querySelectorAll('.combo-item[data-name]')){
-    it.onclick = () => { citySelected = it.dataset.name; cityCombo.value = citySelected; cityList.classList.remove('open'); };
+    it.onclick = () => {
+      citySelected = it.dataset.name;
+      cityCombo.value = citySelected;
+      cityList.classList.remove('open');
+    };
   }
+
+  const first = cityList.querySelector('.combo-item[data-name]');
+  if (first && q) first.scrollIntoView({block:'nearest'});
 }
 
 function openCityList(){ renderCityList(cityCombo.value); cityList.classList.add('open'); }
